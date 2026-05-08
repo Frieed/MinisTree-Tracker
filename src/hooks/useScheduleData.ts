@@ -22,7 +22,8 @@ export const useScheduleData = (initialDate: Date) => {
     const fetchAllData = useCallback(async () => {
         if (!user) return;
         const monthStart = startOfMonth(currentDate);
-        const monthStr = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
+        const year = monthStart.getFullYear() > 2100 ? monthStart.getFullYear() - 543 : monthStart.getFullYear();
+        const monthStr = `${year}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
         const cacheKey = `schedule_${user.id}_${monthStr}`;
 
         // Load from cache
@@ -183,7 +184,8 @@ export const useScheduleData = (initialDate: Date) => {
         start: startOfMonth(currentDate),
         end: endOfMonth(currentDate)
     }).reduce((acc, day) => {
-        const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+        const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
+        const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayIdx = getDay(day);
         const specific = specificSchedules.find(s => s.date === dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);

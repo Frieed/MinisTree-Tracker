@@ -46,7 +46,8 @@ const Hours = () => {
     }, [isStudiesModalOpen, setGlobalModalOpen]);
 
     const handleDayClick = (day: Date) => {
-        const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+        const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
+        const dateKey = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayReports = reports.filter(r => r.date === dateKey);
         
         if (dayReports.length > 0) {
@@ -220,7 +221,10 @@ const Hours = () => {
                 credit={credit} setCredit={(c) => { setCredit(c); setError(null); }} 
                 onSave={onSaveReport} onDelete={onDeleteReport} 
                 loading={loading} error={error}
-                hasExistingReport={!!reports.find(r => selectedDay && r.date === `${selectedDay.getFullYear()}-${String(selectedDay.getMonth() + 1).padStart(2, '0')}-${String(selectedDay.getDate()).padStart(2, '0')}`)} 
+                hasExistingReport={!!reports.find(r => {
+                    const year = selectedDay ? (selectedDay.getFullYear() > 2100 ? selectedDay.getFullYear() - 543 : selectedDay.getFullYear()) : 0;
+                    return selectedDay && r.date === `${year}-${String(selectedDay.getMonth() + 1).padStart(2, '0')}-${String(selectedDay.getDate()).padStart(2, '0')}`
+                })} 
             />
 
             <StudiesModal 

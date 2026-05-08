@@ -168,7 +168,8 @@ export const useDashboardData = () => {
 
       // Calculate projected schedule
       const targetMonthDate = addMonths(serviceYearStartDate, idx);
-      const targetMonthStr = `${targetMonthDate.getFullYear()}-${String(targetMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
+      const targetYear = targetMonthDate.getFullYear() > 2100 ? targetMonthDate.getFullYear() - 543 : targetMonthDate.getFullYear();
+      const targetMonthStr = `${targetYear}-${String(targetMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
       
       const baseSchedule = monthlySchedules.find(s => s.month === targetMonthStr)?.schedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
       
@@ -176,7 +177,8 @@ export const useDashboardData = () => {
         start: startOfMonth(targetMonthDate),
         end: endOfMonth(targetMonthDate)
       }).reduce((acc, day) => {
-        const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+        const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
+        const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayIdx = getDay(day);
         const specific = dailySchedules.find(s => s.date === dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);

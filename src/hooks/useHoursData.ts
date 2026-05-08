@@ -24,7 +24,8 @@ export const useHoursData = (initialDate: Date) => {
         if (!user) return;
         const monthStart = startOfMonth(currentDate);
         const monthEnd = endOfMonth(currentDate);
-        const monthStr = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
+        const year = monthStart.getFullYear() > 2100 ? monthStart.getFullYear() - 543 : monthStart.getFullYear();
+        const monthStr = `${year}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
         const cacheKey = `hours_${user.id}_${monthStr}`;
 
         setLoading(true);
@@ -59,11 +60,13 @@ export const useHoursData = (initialDate: Date) => {
         }
 
         try {
+            const sYear = monthStart.getFullYear() > 2100 ? monthStart.getFullYear() - 543 : monthStart.getFullYear();
+            const eYear = monthEnd.getFullYear() > 2100 ? monthEnd.getFullYear() - 543 : monthEnd.getFullYear();
             const [reportsRes, statusRes, scheduleRes, dailyRes] = await Promise.all([
-                supabase.from('reports').select('*').eq('user_id', user.id).gte('date', `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${monthEnd.getFullYear()}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`),
+                supabase.from('reports').select('*').eq('user_id', user.id).gte('date', `${sYear}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${eYear}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`),
                 supabase.from('monthly_submissions').select('is_reported, bible_studies').eq('user_id', user.id).eq('month', monthStr).maybeSingle(),
                 supabase.from('monthly_schedules').select('schedule').eq('user_id', user.id).eq('month', monthStr).maybeSingle(),
-                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${monthEnd.getFullYear()}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`)
+                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', `${sYear}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${eYear}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`)
             ]);
 
             const newReports = reportsRes.data || [];
@@ -117,7 +120,8 @@ export const useHoursData = (initialDate: Date) => {
 
     const saveReport = async (date: Date, hours: number, credit: number) => {
         if (!user) return;
-        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const year = date.getFullYear() > 2100 ? date.getFullYear() - 543 : date.getFullYear();
+        const dateStr = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         const existing = reports.find(r => r.date === dateStr);
         
         // Optimistic UI Update
@@ -154,7 +158,8 @@ export const useHoursData = (initialDate: Date) => {
 
     const deleteReport = async (date: Date) => {
         if (!user) return { error: new Error('User not authenticated') };
-        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const year = date.getFullYear() > 2100 ? date.getFullYear() - 543 : date.getFullYear();
+        const dateStr = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         const existing = reports.find(r => r.date === dateStr);
         if (!existing) return;
 

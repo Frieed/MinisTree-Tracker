@@ -180,17 +180,47 @@ export const AddVisitModal = ({
 
                             {step === 2 && (
                                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Calendar size={12} /> Day</label>
-                                            <select value={day} onChange={(e) => setDay(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all">
-                                                <option value="">Select Day</option>
-                                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Flexible'].map(d => <option key={d} value={d}>{d}</option>)}
-                                            </select>
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Calendar size={12} /> Availability Days</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Flexible'].map(d => {
+                                                    const selectedDays = day ? day.split(',').map(s => s.trim()) : [];
+                                                    const isSelected = selectedDays.includes(d);
+                                                    
+                                                    const toggleDay = () => {
+                                                        let newDays;
+                                                        if (isSelected) {
+                                                            newDays = selectedDays.filter(s => s !== d);
+                                                        } else {
+                                                            if (d === 'Flexible') {
+                                                                newDays = ['Flexible'];
+                                                            } else {
+                                                                newDays = [...selectedDays.filter(s => s !== 'Flexible'), d];
+                                                            }
+                                                        }
+                                                        setDay(newDays.join(', '));
+                                                    };
+
+                                                    return (
+                                                        <button
+                                                            key={d}
+                                                            onClick={toggleDay}
+                                                            className={`py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all border-2 ${
+                                                                isSelected 
+                                                                    ? 'bg-nature-green text-white border-nature-green shadow-md shadow-nature-green/20' 
+                                                                    : 'bg-nature-cream/30 text-nature-brown-light border-nature-cream hover:border-nature-green/30'
+                                                            }`}
+                                                        >
+                                                            {d}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Clock size={12} /> Time</label>
-                                            <input type="text" value={time} onChange={(e) => setTime(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all" placeholder="E.g. 10:00 AM" />
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Clock size={12} /> Best Time to Visit</label>
+                                            <input type="text" value={time} onChange={(e) => setTime(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all" placeholder="E.g. 10:00 AM or Late Afternoon" />
                                         </div>
                                     </div>
 

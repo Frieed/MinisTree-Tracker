@@ -186,7 +186,7 @@ const VisitsMap = () => {
 
     return (
         <div className="flex flex-col relative bg-nature-cream min-h-full pb-20">
-            <div className="px-6 pb-4 z-10 space-y-4 pt-6">
+            <div className="px-6 pb-4 z-50 space-y-4 pt-6">
                 <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                         <h2 className="text-3xl font-black text-nature-brown-dark tracking-tight flex items-center gap-1.5">
@@ -260,12 +260,12 @@ const VisitsMap = () => {
                                 <AnimatePresence>
                                     {isOpen && (
                                         <>
-                                            <div className="fixed inset-0 z-[100]" onClick={() => setOpenFilterId(null)} />
+                                            <div className="fixed inset-0 z-[1001]" onClick={() => setOpenFilterId(null)} />
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                className="absolute left-0 right-0 top-full mt-2 bg-white/95 backdrop-blur-xl border-2 border-nature-cream rounded-2xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] py-2 z-[110] max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar"
+                                                className="absolute left-0 right-0 top-full mt-2 bg-white/95 backdrop-blur-xl border-2 border-nature-cream rounded-2xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] py-2 z-[1002] max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar"
                                             >
                                                 {f.options.map((opt) => (
                                                     <button

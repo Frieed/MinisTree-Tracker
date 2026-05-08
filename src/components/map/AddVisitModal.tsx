@@ -83,7 +83,7 @@ export const AddVisitModal = ({
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         style={{ willChange: 'transform' }}
-                        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[3rem] px-6 pt-4 pb-8 z-[2100] shadow-2xl h-[90vh] overflow-y-auto"
+                        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[3rem] px-6 pt-4 pb-8 z-[2100] shadow-2xl min-h-[70vh] max-h-[95vh] overflow-y-auto"
                     >
                         <div className="w-12 h-1.5 bg-nature-cream rounded-full mx-auto mb-6" />
 

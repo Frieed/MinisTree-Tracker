@@ -296,7 +296,7 @@ const VisitsMap = () => {
                 </div>
             </div>
 
-            <div className={`relative mx-4 mb-24 rounded-3xl overflow-hidden bg-nature-cream/20 border border-nature-cream/40 shadow-inner flex flex-col transition-all duration-300 ${activeTab === 'map' ? 'h-[550px]' : 'h-[500px]'}`}>
+            <div className={`relative mx-4 mb-24 rounded-3xl overflow-hidden bg-nature-cream/20 border border-nature-cream/40 shadow-inner flex flex-col transition-all duration-300 ${activeTab === 'map' ? 'h-[550px]' : 'h-[400px]'}`}>
                 <AnimatePresence>
                     {activeTab === 'list' ? (
                         <motion.div key="list-view" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="h-full overflow-y-auto p-4 space-y-3">

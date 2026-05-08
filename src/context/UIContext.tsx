@@ -3,12 +3,15 @@ import React, { createContext, useContext, useState } from 'react';
 interface UIContextType {
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
+  hasUnsavedChanges: boolean;
+  setHasUnsavedChanges: (hasChanges: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   const [openModalsCount, setOpenModalsCount] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const isModalOpen = openModalsCount > 0;
 
@@ -17,7 +20,12 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <UIContext.Provider value={{ isModalOpen, setIsModalOpen: toggleModal }}>
+    <UIContext.Provider value={{ 
+      isModalOpen, 
+      setIsModalOpen: toggleModal,
+      hasUnsavedChanges,
+      setHasUnsavedChanges
+    }}>
       {children}
     </UIContext.Provider>
   );

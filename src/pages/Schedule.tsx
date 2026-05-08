@@ -12,12 +12,12 @@ import { useUI } from '../context/UIContext';
 import { CountUp } from '../components/common/CountUp';
 
 const Schedule = () => {
-    const { setIsModalOpen: setGlobalModalOpen } = useUI();
+    const { setIsModalOpen: setGlobalModalOpen, setHasUnsavedChanges } = useUI();
     const { startDate: syStart, endDate: syEnd } = useServiceYear();
     const {
         currentDate, setCurrentDate, baseSchedule: monthlySchedule, setBaseSchedule: setMonthlySchedule,
         dynamicMonthlyGoal, allSchedules, specificSchedules,
-        projectedTotal, saving, success,
+        projectedTotal, loading, saving, success,
         saveMonthlySchedule, saveSpecificSchedule, deleteSpecificSchedule, copyFromMonth
     } = useScheduleData(new Date());
 
@@ -42,6 +42,67 @@ const Schedule = () => {
             setNewSpecificHours('0');
         }
         setIsSpecificSaving(false);
+    };
+
+    const [lastSavedSchedule, setLastSavedSchedule] = useState<Record<string | number, number> | null>(null);
+    const [hasChanges, setHasChanges] = useState(false);
+
+    // Track original state to detect changes
+    useEffect(() => {
+        if (loading) {
+            setLastSavedSchedule(null);
+            setHasChanges(false);
+            setHasUnsavedChanges(false);
+        } else if (monthlySchedule && !lastSavedSchedule) {
+            setLastSavedSchedule({ ...monthlySchedule });
+        }
+    }, [loading, monthlySchedule, lastSavedSchedule, setHasUnsavedChanges]);
+
+    // Compare current with last saved and update global UI state
+    useEffect(() => {
+        if (lastSavedSchedule && monthlySchedule) {
+            // Normalize keys to strings for stable comparison
+            const normalize = (obj: any) => {
+                const normalized: any = {};
+                Object.keys(obj).forEach(key => {
+                    normalized[String(key)] = obj[key];
+                });
+                return JSON.stringify(normalized);
+            };
+
+            const changed = normalize(lastSavedSchedule) !== normalize(monthlySchedule);
+            setHasChanges(changed);
+            setHasUnsavedChanges(changed);
+        } else {
+            setHasChanges(false);
+            setHasUnsavedChanges(false);
+        }
+    }, [monthlySchedule, lastSavedSchedule, setHasUnsavedChanges]);
+
+    // Clear global unsaved changes on unmount
+    useEffect(() => {
+        return () => setHasUnsavedChanges(false);
+    }, [setHasUnsavedChanges]);
+
+    // Navigation guard (Browser level)
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasChanges]);
+
+    const handleSaveMonthly = async () => {
+        const res = await saveMonthlySchedule();
+        if (res.error === null) {
+            setLastSavedSchedule({ ...monthlySchedule });
+            setHasChanges(false);
+            setHasUnsavedChanges(false);
+        }
     };
 
     return (
@@ -153,11 +214,11 @@ const Schedule = () => {
                     setNewSpecificDate(format(currentDate, 'yyyy-MM-01'));
                     setIsSpecificModalOpen(true);
                 }}
-                onSave={saveMonthlySchedule}
+                onSave={handleSaveMonthly}
                 saving={saving}
                 success={success}
+                hasChanges={hasChanges}
             />
-
 
 
             <SpecificScheduleModal

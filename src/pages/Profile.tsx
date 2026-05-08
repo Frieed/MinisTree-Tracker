@@ -220,12 +220,23 @@ const Profile = () => {
                         <p className="text-xs text-nature-brown leading-relaxed">Monthly goals are calculated based on your weekly hourly schedule. Since some months have 4 weeks and others 5, the monthly goal adjusts automatically.</p>
                       </div>
                       <div className="space-y-2">
+                        <h5 className="font-bold text-sm text-nature-brown-dark">Goal Hours vs. Sched Hours?</h5>
+                        <p className="text-xs text-nature-brown leading-relaxed">
+                          <span className="font-bold text-nature-green-dark">Goal Hours</span> is your official target for the month (e.g. 50 hrs). 
+                          <span className="font-bold text-nature-brown-dark"> Sched Hours</span> is the total time you've actually planned in your personal schedule for the month.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <h5 className="font-bold text-sm text-nature-brown-dark">What are "Credit Hours"?</h5>
+                        <p className="text-xs text-nature-brown leading-relaxed">Credit hours are for extra activities (like LDC or construction) that count towards your yearly total but aren't logged as field service time.</p>
+                      </div>
+                      <div className="space-y-2">
                         <h5 className="font-bold text-sm text-nature-brown-dark">How does the Companion Tree grow?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed">The tree levels up as you reach milestones in your service year hourly goal. There are 13 unique growth stages!</p>
+                        <p className="text-xs text-nature-brown leading-relaxed">Your tree flourishes as you reach milestones in your service year. There are 13 growth stages—keep logging to see it evolve!</p>
                       </div>
                       <div className="space-y-2">
                         <h5 className="font-bold text-sm text-nature-brown-dark">Can I work offline?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed">Currently an active internet connection is required to sync data. Offline support is planned for a future update.</p>
+                        <p className="text-xs text-nature-brown leading-relaxed"><span className="font-bold text-nature-green-dark">Yes!</span> MinisTree now fully supports offline mode. You can log hours and manage your garden anywhere—your data will sync automatically when you're back online.</p>
                       </div>
                     </div>
                   </motion.div>

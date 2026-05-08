@@ -15,11 +15,12 @@ interface MonthlyScheduleLogProps {
     onSave: () => void;
     saving: boolean;
     success: boolean;
+    hasChanges?: boolean;
 }
 
 export const MonthlyScheduleLog = ({
     currentDate, monthlySchedule, setMonthlySchedule, specificSchedules,
-    onDeleteSpecific, onCopyFrom, savedSchedules, onAddSpecific, onSave, saving, success
+    onDeleteSpecific, onCopyFrom, savedSchedules, onAddSpecific, onSave, saving, success, hasChanges = false
 }: MonthlyScheduleLogProps) => {
     const [isCopyMenuOpen, setIsCopyMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -207,6 +208,20 @@ export const MonthlyScheduleLog = ({
                     <motion.button
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98, y: 2 }}
+                        animate={hasChanges && !saving && !success ? {
+                            scale: [1, 1.03, 1],
+                            backgroundColor: ['#4B2C20', '#4A7C59', '#4B2C20'],
+                            boxShadow: [
+                                '0 15px 30px rgba(75,44,32,0.3)',
+                                '0 15px 45px rgba(74,124,89,0.5)',
+                                '0 15px 30px rgba(75,44,32,0.3)'
+                            ]
+                        } : {}}
+                        transition={hasChanges ? {
+                            repeat: Infinity,
+                            duration: 2,
+                            ease: "easeInOut"
+                        } : {}}
                         onClick={onSave}
                         disabled={saving}
                         className={`w-full py-5 rounded-[2rem] flex items-center justify-center gap-3 transition-all font-black uppercase tracking-[0.2em] text-xs relative overflow-hidden border-b-4 border-[#3E2723]/30 ${
@@ -222,6 +237,8 @@ export const MonthlyScheduleLog = ({
                             <Loader2 size={20} className="animate-spin" />
                         ) : success ? (
                             <><CheckCircle2 size={20} /> Plan Carved!</>
+                        ) : hasChanges ? (
+                            <><Save size={20} className="animate-bounce" /> Save Changes Now</>
                         ) : (
                             <><Save size={20} /> Save for {format(currentDate, 'MMMM')}</>
                         )}

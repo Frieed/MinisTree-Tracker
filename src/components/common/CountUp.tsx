@@ -9,7 +9,7 @@ interface CountUpProps {
 
 export const CountUp = ({ value, decimals = 0, className }: CountUpProps) => {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-50px" });
+    const isInView = useInView(ref, { once: true, margin: "0px" });
     const spring = useSpring(0, { mass: 1, stiffness: 50, damping: 15 });
     const display = useTransform(spring, (v) => v.toFixed(decimals));
 

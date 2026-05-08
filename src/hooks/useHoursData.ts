@@ -183,7 +183,9 @@ export const useHoursData = (initialDate: Date) => {
     const toggleReported = async () => {
         if (!user) return;
         setStatusLoading(true);
-        const monthStr = `${startOfMonth(currentDate).getFullYear()}-${String(startOfMonth(currentDate).getMonth() + 1).padStart(2, '0')}-01`;
+        const monthStart = startOfMonth(currentDate);
+        const year = monthStart.getFullYear() > 2100 ? monthStart.getFullYear() - 543 : monthStart.getFullYear();
+        const monthStr = `${year}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
         const newStatus = !isReported;
         
         setIsReported(newStatus); // Optimistic
@@ -210,7 +212,9 @@ export const useHoursData = (initialDate: Date) => {
     const saveStudies = async (studies: number) => {
         if (!user) return;
         setStatusLoading(true);
-        const monthStr = `${startOfMonth(currentDate).getFullYear()}-${String(startOfMonth(currentDate).getMonth() + 1).padStart(2, '0')}-01`;
+        const monthStart = startOfMonth(currentDate);
+        const year = monthStart.getFullYear() > 2100 ? monthStart.getFullYear() - 543 : monthStart.getFullYear();
+        const monthStr = `${year}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
         
         setMonthlyStudies(studies); // Optimistic
 

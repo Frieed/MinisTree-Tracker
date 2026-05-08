@@ -22,7 +22,11 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
         <div className="grid grid-cols-7 divide-x divide-y divide-nature-cream border-l border-t border-nature-cream text-center">
             {calendarDays.map((day, idx) => {
                 const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-                const report = reports.find(r => r.date === dateKey);
+                const dayReports = reports.filter(r => r.date === dateKey);
+                const report = dayReports.length > 0 ? {
+                    hours: dayReports.reduce((acc, r) => acc + (Number(r.hours) || 0), 0),
+                    credit: dayReports.reduce((acc, r) => acc + (Number(r.credit) || 0), 0)
+                } : null;
                 const isCurrentMonth = isSameMonth(day, monthStart);
 
                 return (

@@ -81,6 +81,7 @@ export const useHoursData = (initialDate: Date) => {
     };
 
     const deleteReport = async (date: Date) => {
+        if (!user) return { error: new Error('User not authenticated') };
         const dateStr = format(date, 'yyyy-MM-dd');
         const existing = reports.find(r => r.date === dateStr);
         if (!existing) return;

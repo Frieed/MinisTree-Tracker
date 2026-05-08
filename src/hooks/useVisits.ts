@@ -53,12 +53,14 @@ export const useVisits = () => {
     };
 
     const deleteVisit = async (id: string) => {
+        if (!user) return { error: new Error('User not authenticated') };
         const { error } = await supabase.from('return_visits').delete().eq('id', id).eq('user_id', user.id);
         if (!error) await fetchVisits();
         return { error };
     };
 
     const waterVisit = async (visitId: string, logData: any, latestUpdate: any) => {
+        if (!user) return { error: new Error('User not authenticated') };
         // 1. Log the update
         const { error: logError } = await supabase.from('visit_logs').insert({ visit_id: visitId, ...logData });
         if (logError) return { error: logError };
@@ -91,6 +93,7 @@ export const useVisits = () => {
     };
 
     const toggleBibleStudy = async (visitId: string, isBibleStudy: boolean) => {
+        if (!user) return { error: new Error('User not authenticated') };
         const result = await supabase
             .from('return_visits')
             .update({ is_bible_study: !isBibleStudy })

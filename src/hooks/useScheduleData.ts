@@ -59,7 +59,7 @@ export const useScheduleData = (initialDate: Date) => {
     }, [fetchAllData]);
 
     const saveMonthlySchedule = async () => {
-        if (!user) return;
+        if (!user) return { error: new Error('User not authenticated') };
         setSaving(true);
         const { error } = await supabase.from('monthly_schedules').upsert({
             user_id: user.id,
@@ -76,7 +76,7 @@ export const useScheduleData = (initialDate: Date) => {
     };
 
     const saveSpecificSchedule = async (date: string, hours: number) => {
-        if (!user) return;
+        if (!user) return { error: new Error('User not authenticated') };
         const { error } = await supabase.from('daily_schedules').upsert({
             user_id: user.id,
             date,

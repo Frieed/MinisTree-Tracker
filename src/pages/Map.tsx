@@ -166,7 +166,7 @@ const VisitsMap = () => {
             const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.address?.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesDay = activeFilter === 'All' ||
                 (activeFilter === 'Flexible' && !v.availability_day) ||
-                (v.availability_day && v.availability_day.split(',').some(d => {
+                (v.availability_day && v.availability_day.split(',').some((d: string) => {
                     const trimmedDay = d.trim();
                     if (activeFilter === 'Flexible') {
                         return trimmedDay === 'Flexible' || trimmedDay.toLowerCase() === 'anyday';

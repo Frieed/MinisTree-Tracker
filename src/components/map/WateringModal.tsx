@@ -42,46 +42,75 @@ export const WateringModal = ({
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         style={{ willChange: 'transform' }}
-                        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[3rem] px-6 pt-4 pb-8 z-[1100] shadow-2xl min-h-[60vh] max-h-[90vh] overflow-y-auto"
+                        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-[1100] shadow-2xl max-h-[95svh] flex flex-col"
                     >
-                        <div className="w-12 h-1.5 bg-nature-cream rounded-full mx-auto mb-6" />
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 className="text-3xl font-black text-nature-brown-dark tracking-tight">{visitName}</h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className="px-2 py-0.5 bg-water-blue/10 rounded-full border border-water-blue/20">
-                                        <p className="text-[9px] uppercase font-black text-water-blue tracking-widest">Nourish & Update</p>
-                                    </div>
+                        {/* Compact Header with Save Button */}
+                        <div className="px-5 py-4 border-b border-nature-cream flex justify-between items-center bg-water-blue/5 rounded-t-[2rem] shrink-0">
+                            <div className="flex-1 min-w-0 mr-3">
+                                <h3 className="text-base font-black text-nature-brown-dark truncate">{visitName}</h3>
+                                <p className="text-[8px] font-bold text-water-blue uppercase tracking-widest">Nourish & Update</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={onSave} 
+                                    disabled={saving} 
+                                    className="bg-water-blue text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg shadow-water-blue/20 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                    {saving ? <Loader2 className="animate-spin" size={12} /> : <><Droplets size={12} /> Save</>}
+                                </button>
+                                <button onClick={onClose} className="p-2 bg-nature-cream hover:bg-nature-brown/10 rounded-xl text-nature-brown transition-colors"><X size={16} /></button>
+                            </div>
+                        </div>
+
+                        {/* Highly Compact Body */}
+                        <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0 space-y-3">
+                            <div className="flex items-center gap-4 bg-nature-cream-light/50 p-3 rounded-2xl border border-nature-cream/50">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light flex-1 flex items-center gap-2"><Calendar size={12} /> Visit Date</label>
+                                <div className="w-36">
+                                    <input 
+                                        type="date" 
+                                        value={lastVisited} 
+                                        onChange={(e) => setLastVisited(e.target.value)} 
+                                        className="w-full bg-white rounded-xl py-2 px-2 text-sm font-bold text-nature-brown-dark outline-none border border-nature-cream focus:border-water-blue" 
+                                    />
                                 </div>
                             </div>
-                            <button onClick={onClose} className="p-2 bg-nature-cream hover:bg-nature-brown/10 rounded-full text-nature-brown transition-colors"><X size={20} /></button>
-                        </div>
 
-                        <div className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Calendar size={12} /> Date of Visit</label>
-                                <input type="date" value={lastVisited} onChange={(e) => setLastVisited(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><BookOpen size={12} /> Placed Literature</label>
-                                <input type="text" value={newGiven} onChange={(e) => setNewGiven(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all" placeholder="E.g. Enjoy Life Forever!" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><HelpCircle size={12} /> Next Topic / Question</label>
-                                <input type="text" value={newQuestions} onChange={(e) => setNewQuestions(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all" placeholder="E.g. Why does God allow suffering?" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> Conversation Remarks</label>
-                                <textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all h-24" placeholder="Briefly summarize what was discussed..." />
+                            <div className="flex flex-col gap-1 bg-nature-cream-light/30 p-3 rounded-2xl border border-nature-cream/50">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-nature-brown-light flex items-center gap-2"><BookOpen size={12} /> Placed Literature</label>
+                                <input 
+                                    type="text" 
+                                    value={newGiven} 
+                                    onChange={(e) => setNewGiven(e.target.value)} 
+                                    className="w-full bg-white rounded-xl py-2 px-3 text-sm font-bold text-nature-brown-dark outline-none border border-nature-cream focus:border-water-blue focus:placeholder:text-transparent" 
+                                    placeholder="E.g. Enjoy Life Forever!" 
+                                />
                             </div>
 
-                            <button
-                                onClick={onSave} disabled={saving}
-                                className="w-full h-16 bg-water-blue text-white rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-water-blue/20 font-black uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all"
-                            >
-                                {saving ? <Loader2 className="animate-spin" /> : <><Droplets size={20} /> Save Update & Nourish</>}
-                            </button>
+                            <div className="flex flex-col gap-1 bg-nature-cream-light/30 p-3 rounded-2xl border border-nature-cream/50">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-nature-brown-light flex items-center gap-2"><HelpCircle size={12} /> Next Topic</label>
+                                <input 
+                                    type="text" 
+                                    value={newQuestions} 
+                                    onChange={(e) => setNewQuestions(e.target.value)} 
+                                    className="w-full bg-white rounded-xl py-2 px-3 text-sm font-bold text-nature-brown-dark outline-none border border-nature-cream focus:border-water-blue focus:placeholder:text-transparent" 
+                                    placeholder="E.g. Why allow suffering?" 
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-1 bg-nature-cream-light/30 p-3 rounded-2xl border border-nature-cream/50">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-nature-brown-light flex items-center gap-2"><FileText size={12} /> Remarks</label>
+                                <textarea 
+                                    value={newNotes} 
+                                    onChange={(e) => setNewNotes(e.target.value)} 
+                                    className="w-full bg-white rounded-xl py-2 px-3 text-sm font-bold text-nature-brown-dark outline-none border border-nature-cream focus:border-water-blue h-20 resize-none focus:placeholder:text-transparent" 
+                                    placeholder="Brief summary..." 
+                                />
+                            </div>
                         </div>
+                        
+                        {/* Bottom Spacer for Keyboard */}
+                        <div className="h-6 bg-white shrink-0" />
                     </motion.div>
                 </>
             )}

@@ -15,7 +15,7 @@ const Hours = () => {
         currentDate, setCurrentDate,
         reports, isReported, monthlyStudies, dynamicGoal,
         plannedSchedule, dailySchedules, loading, statusLoading,
-        saveReport, deleteReport, toggleReported, saveStudies, refreshData
+        saveReport, deleteReport, toggleReported, saveStudies
     } = useHoursData(new Date());
 
     const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -145,13 +145,6 @@ const Hours = () => {
                     
                     <div className="flex flex-col items-center gap-1">
                         <h3 className="text-lg font-black text-nature-brown-dark">{format(currentDate, 'MMMM yyyy')}</h3>
-                        <button 
-                            onClick={refreshData}
-                            className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-nature-green hover:text-nature-green-dark transition-colors"
-                        >
-                            <Loader2 size={10} className={loading ? 'animate-spin' : ''} />
-                            {loading ? 'Syncing...' : 'Force Sync'}
-                        </button>
                     </div>
 
                     <button

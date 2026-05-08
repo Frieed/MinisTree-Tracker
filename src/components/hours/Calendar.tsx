@@ -107,9 +107,6 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                     const dayIdx = getDay(day);
                                     const daily = dailySchedules.find(s => s.date === dateKey);
                                     
-                                    // Extreme robust lookup: 
-                                    // 1. Check for Sunday index 0 or 7 (Some locales vary)
-                                    // 2. Check for string vs number keys
                                     let planned = 0;
                                     if (daily) {
                                         planned = Number(daily.hours) || 0;
@@ -117,7 +114,6 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                         const sundayKeys = [0, 7, "0", "7"];
                                         const lookupKey = dayIdx === 0 ? sundayKeys : [dayIdx, dayIdx.toString()];
                                         
-                                        // Try to find any match in the schedule
                                         for (const key of (Array.isArray(lookupKey) ? lookupKey : [lookupKey])) {
                                             if (plannedSchedule[key as any] !== undefined) {
                                                 planned = Number(plannedSchedule[key as any]);

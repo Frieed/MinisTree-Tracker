@@ -23,7 +23,7 @@ export const VisitDetailsModal = ({
         {isOpen && visit && (
             <>
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-nature-brown-dark/40 backdrop-blur-sm z-[1000]" />
-                <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className={`fixed bottom-0 left-0 right-0 ${visit.is_bible_study ? 'bg-[#F0F7F1]' : 'bg-[#FDFBF7]'} rounded-t-[3rem] max-h-[90vh] overflow-y-auto z-[1100] shadow-2xl transition-colors duration-500`}>
+                <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className={`fixed bottom-0 left-0 right-0 ${visit.is_bible_study ? 'bg-[#F0F7F1]' : 'bg-[#FDFBF7]'} rounded-t-[3rem] h-[85vh] overflow-y-auto z-[1100] shadow-2xl transition-colors duration-500`}>
                     <div className="w-12 h-1.5 bg-nature-brown/10 rounded-full mx-auto my-4" />
                     
                     <div className="px-6 space-y-6 pb-8">

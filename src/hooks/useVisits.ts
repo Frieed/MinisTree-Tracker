@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { offlineStore } from '../lib/offline';
 
 export const useVisits = () => {
     const { user } = useAuth();
@@ -11,102 +12,178 @@ export const useVisits = () => {
 
     const fetchVisits = useCallback(async () => {
         if (!user) return;
-        setLoading(true);
-        const { data } = await supabase
-            .from('return_visits')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+        const cacheKey = `visits_${user.id}`;
+        
+        // Load from cache first
+        const cached = await offlineStore.getItem<any[]>(cacheKey);
+        if (cached) setVisits(cached);
 
-        if (data) setVisits(data);
-        setLoading(false);
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('return_visits')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            if (data) {
+                setVisits(data);
+                await offlineStore.setItem(cacheKey, data);
+            }
+        } catch (err) {
+            console.warn('[Offline] Using cached visits');
+        } finally {
+            setLoading(false);
+        }
     }, [user]);
 
     const fetchVisitLogs = async (visitId: string) => {
-        setLoadingLogs(true);
-        const { data } = await supabase
-            .from('visit_logs')
-            .select('*')
-            .eq('visit_id', visitId)
-            .order('visit_date', { ascending: false })
-            .order('created_at', { ascending: false });
+        const cacheKey = `logs_${visitId}`;
+        const cached = await offlineStore.getItem<any[]>(cacheKey);
+        if (cached) setVisitLogs(cached);
 
-        if (data) setVisitLogs(data);
-        setLoadingLogs(false);
+        setLoadingLogs(true);
+        try {
+            const { data, error } = await supabase
+                .from('visit_logs')
+                .select('*')
+                .eq('visit_id', visitId)
+                .order('visit_date', { ascending: false })
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            if (data) {
+                setVisitLogs(data);
+                await offlineStore.setItem(cacheKey, data);
+            }
+        } catch (err) {
+            console.warn('[Offline] Using cached logs');
+        } finally {
+            setLoadingLogs(false);
+        }
     };
 
     const saveVisit = async (visitData: any, editingId?: string) => {
         if (!user) return { error: 'User not authenticated' };
         
-        let result;
+        // Optimistic UI
+        const tempId = editingId || `temp-${Date.now()}`;
+        const optimisticVisit = { ...visitData, id: tempId, user_id: user.id };
         if (editingId) {
-            result = await supabase
-                .from('return_visits')
-                .update(visitData)
-                .eq('id', editingId);
+            setVisits(visits.map(v => v.id === editingId ? optimisticVisit : v));
         } else {
-            result = await supabase.from('return_visits').insert({ ...visitData, user_id: user.id });
+            setVisits([optimisticVisit, ...visits]);
         }
-        
-        if (!result.error) await fetchVisits();
-        return result;
+
+        try {
+            let result;
+            if (editingId) {
+                result = await supabase.from('return_visits').update(visitData).eq('id', editingId);
+            } else {
+                result = await supabase.from('return_visits').insert({ ...visitData, user_id: user.id }).select().single();
+            }
+            if (result.error) throw result.error;
+            await fetchVisits();
+            return result;
+        } catch (err) {
+            await offlineStore.addToOutbox({
+                table: 'return_visits',
+                action: editingId ? 'UPDATE' : 'INSERT',
+                payload: editingId ? { ...visitData, id: editingId } : { ...visitData, user_id: user.id }
+            });
+            return { error: null, offline: true };
+        }
     };
 
     const deleteVisit = async (id: string) => {
         if (!user) return { error: new Error('User not authenticated') };
-        const { error } = await supabase.from('return_visits').delete().eq('id', id).eq('user_id', user.id);
-        if (!error) await fetchVisits();
-        return { error };
+        
+        setVisits(visits.filter(v => v.id !== id));
+
+        try {
+            const { error } = await supabase.from('return_visits').delete().eq('id', id).eq('user_id', user.id);
+            if (error) throw error;
+            await fetchVisits();
+        } catch (err) {
+            await offlineStore.addToOutbox({
+                table: 'return_visits',
+                action: 'DELETE',
+                payload: { id }
+            });
+        }
+        return { error: null };
     };
 
     const waterVisit = async (visitId: string, logData: any, latestUpdate: any) => {
         if (!user) return { error: new Error('User not authenticated') };
-        // 1. Log the update
-        const { error: logError } = await supabase.from('visit_logs').insert({ visit_id: visitId, ...logData });
-        if (logError) return { error: logError };
+        
+        // Optimistic UI
+        const tempLogId = `temp-log-${Date.now()}`;
+        setVisitLogs([{ ...logData, id: tempLogId, visit_id: visitId }, ...visitLogs]);
+        setVisits(visits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
 
-        // 2. Auto-Prune logs (keep last 3)
-        const { data: allHistory } = await supabase
-            .from('visit_logs')
-            .select('id')
-            .eq('visit_id', visitId)
-            .order('visit_date', { ascending: false })
-            .order('created_at', { ascending: false });
+        try {
+            const { error: logError } = await supabase.from('visit_logs').insert({ visit_id: visitId, ...logData });
+            if (logError) throw logError;
 
-        if (allHistory && allHistory.length > 3) {
-            const logsToDelete = allHistory.slice(3).map(l => l.id);
-            await supabase.from('visit_logs').delete().in('id', logsToDelete);
-        }
+            const result = await supabase.from('return_visits').update(latestUpdate).eq('id', visitId).eq('user_id', user.id);
+            if (result.error) throw result.error;
 
-        // 3. Update main record
-        const result = await supabase
-            .from('return_visits')
-            .update(latestUpdate)
-            .eq('id', visitId)
-            .eq('user_id', user.id);
-
-        if (!result.error) {
             await fetchVisits();
             await fetchVisitLogs(visitId);
+            return result;
+        } catch (err) {
+            await offlineStore.addToOutbox({
+                table: 'visit_logs',
+                action: 'INSERT',
+                payload: { visit_id: visitId, ...logData }
+            });
+            await offlineStore.addToOutbox({
+                table: 'return_visits',
+                action: 'UPDATE',
+                payload: { ...latestUpdate, id: visitId }
+            });
+            return { error: null, offline: true };
         }
-        return result;
     };
 
     const toggleBibleStudy = async (visitId: string, isBibleStudy: boolean) => {
         if (!user) return { error: new Error('User not authenticated') };
-        const result = await supabase
-            .from('return_visits')
-            .update({ is_bible_study: !isBibleStudy })
-            .eq('id', visitId)
-            .eq('user_id', user.id);
-        if (!result.error) await fetchVisits();
-        return result;
+        
+        const newStatus = !isBibleStudy;
+        setVisits(visits.map(v => v.id === visitId ? { ...v, is_bible_study: newStatus } : v));
+
+        try {
+            const result = await supabase.from('return_visits').update({ is_bible_study: newStatus }).eq('id', visitId).eq('user_id', user.id);
+            if (result.error) throw result.error;
+            await fetchVisits();
+            return result;
+        } catch (err) {
+            await offlineStore.addToOutbox({
+                table: 'return_visits',
+                action: 'UPDATE',
+                payload: { id: visitId, is_bible_study: newStatus }
+            });
+            return { error: null, offline: true };
+        }
     };
 
     const deleteLog = async (logId: string, visitId: string) => {
-        const { error } = await supabase.from('visit_logs').delete().eq('id', logId);
-        if (!error) await fetchVisitLogs(visitId);
-        return { error };
+        setVisitLogs(visitLogs.filter(l => l.id !== logId));
+
+        try {
+            const { error } = await supabase.from('visit_logs').delete().eq('id', logId);
+            if (error) throw error;
+            await fetchVisitLogs(visitId);
+        } catch (err) {
+            await offlineStore.addToOutbox({
+                table: 'visit_logs',
+                action: 'DELETE',
+                payload: { id: logId }
+            });
+        }
+        return { error: null };
     };
 
     // Auto-Cleanup logic

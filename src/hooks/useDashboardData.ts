@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useServiceYear } from '../context/ServiceYearContext';
 import { SERVICE_YEAR_MONTHS, YEARLY_QUOTA } from '../constants/serviceYear';
+import { offlineStore } from '../lib/offline';
 
 export const useDashboardData = () => {
   const { user } = useAuth();
@@ -18,37 +19,66 @@ export const useDashboardData = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [reportsRes, submissionsRes, monthlySchedulesRes, dailySchedulesRes] = await Promise.all([
-        supabase
-          .from('reports')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('date', format(serviceYearStartDate, 'yyyy-MM-dd'))
-          .lte('date', format(serviceYearEndDate, 'yyyy-MM-dd'))
-          .order('date', { ascending: true }),
-        supabase
-          .from('monthly_submissions')
-          .select('*')
-          .eq('user_id', user.id),
-        supabase
-          .from('monthly_schedules')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('month', format(serviceYearStartDate, 'yyyy-MM-dd'))
-          .lte('month', format(serviceYearEndDate, 'yyyy-MM-dd')),
-        supabase
-          .from('daily_schedules')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('date', format(serviceYearStartDate, 'yyyy-MM-dd'))
-          .lte('date', format(serviceYearEndDate, 'yyyy-MM-dd'))
-      ]);
+      const cacheKey = `dashboard_${user.id}`;
+      
+      // Load from cache first
+      const cached = await offlineStore.getItem<any>(cacheKey);
+      if (cached) {
+        setReports(cached.reports || []);
+        setSubmissions(cached.submissions || []);
+        setMonthlySchedules(cached.monthlySchedules || []);
+        setDailySchedules(cached.dailySchedules || []);
+        setIsDataLoaded(true);
+      }
 
-      if (reportsRes.data) setReports(reportsRes.data);
-      if (submissionsRes.data) setSubmissions(submissionsRes.data);
-      if (monthlySchedulesRes.data) setMonthlySchedules(monthlySchedulesRes.data);
-      if (dailySchedulesRes.data) setDailySchedules(dailySchedulesRes.data);
-      setIsDataLoaded(true);
+      try {
+        const [reportsRes, submissionsRes, monthlySchedulesRes, dailySchedulesRes] = await Promise.all([
+          supabase
+            .from('reports')
+            .select('*')
+            .eq('user_id', user.id)
+            .gte('date', format(serviceYearStartDate, 'yyyy-MM-dd'))
+            .lte('date', format(serviceYearEndDate, 'yyyy-MM-dd'))
+            .order('date', { ascending: true }),
+          supabase
+            .from('monthly_submissions')
+            .select('*')
+            .eq('user_id', user.id),
+          supabase
+            .from('monthly_schedules')
+            .select('*')
+            .eq('user_id', user.id)
+            .gte('month', format(serviceYearStartDate, 'yyyy-MM-dd'))
+            .lte('month', format(serviceYearEndDate, 'yyyy-MM-dd')),
+          supabase
+            .from('daily_schedules')
+            .select('*')
+            .eq('user_id', user.id)
+            .gte('date', format(serviceYearStartDate, 'yyyy-MM-dd'))
+            .lte('date', format(serviceYearEndDate, 'yyyy-MM-dd'))
+        ]);
+
+        const newReports = reportsRes.data || [];
+        const newSubmissions = submissionsRes.data || [];
+        const newMonthly = monthlySchedulesRes.data || [];
+        const newDaily = dailySchedulesRes.data || [];
+
+        setReports(newReports);
+        setSubmissions(newSubmissions);
+        setMonthlySchedules(newMonthly);
+        setDailySchedules(newDaily);
+        setIsDataLoaded(true);
+
+        // Update Cache
+        await offlineStore.setItem(cacheKey, {
+          reports: newReports,
+          submissions: newSubmissions,
+          monthlySchedules: newMonthly,
+          dailySchedules: newDaily
+        });
+      } catch (err) {
+        console.warn('[Offline] Dashboard using cached data');
+      }
     };
 
     fetchData();

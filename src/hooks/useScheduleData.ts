@@ -179,9 +179,11 @@ export const useScheduleData = (initialDate: Date) => {
         end: endOfMonth(currentDate)
     }).reduce((acc, day) => {
         const dateStr = format(day, 'yyyy-MM-dd');
+        const dayIdx = getDay(day);
         const specific = specificSchedules.find(s => s.date === dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);
-        return acc + (baseSchedule[getDay(day)] || 0);
+        // Handle both number and string keys for mobile compatibility
+        return acc + (baseSchedule[dayIdx] ?? baseSchedule[dayIdx.toString()] ?? 0);
     }, 0);
 
     return {

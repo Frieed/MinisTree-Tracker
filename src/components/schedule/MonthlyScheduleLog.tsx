@@ -180,7 +180,7 @@ export const MonthlyScheduleLog = ({
                                         <input
                                             type="number"
                                             step="0.5"
-                                            value={monthlySchedule[day.id] === 0 ? '' : monthlySchedule[day.id]}
+                                            value={(monthlySchedule[day.id] ?? monthlySchedule[day.id.toString()] ?? 0) === 0 ? '' : (monthlySchedule[day.id] ?? monthlySchedule[day.id.toString()])}
                                             onChange={(e) => setMonthlySchedule(prev => ({ ...prev, [day.id]: parseFloat(e.target.value) || 0 }))}
                                             onFocus={(e) => e.target.select()}
                                             className="w-full text-center bg-transparent border-none text-xl font-black text-[#4B2C20]/90 focus:outline-none placeholder:text-[#4B2C20]/20"

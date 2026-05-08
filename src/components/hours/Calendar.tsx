@@ -55,7 +55,9 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                     const h = Math.floor(report.hours);
                                     const m = Math.round((report.hours % 1) * 60);
                                     const dailyOverride = dailySchedules.find(s => s.date === dateKey);
-                                    const plannedForDay = dailyOverride ? dailyOverride.hours : (plannedSchedule[getDay(day)] || 0);
+                                    const dayIdx = getDay(day);
+                                    // Robust lookup: check both number and string keys for compatibility
+                                    const plannedForDay = dailyOverride ? dailyOverride.hours : (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
                                     let statusColor = 'bg-nature-green';
                                     
                                     if (plannedForDay > 0) {
@@ -82,8 +84,11 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                         ) : !report && isCurrentMonth ? (
                             <>
                                 {(() => {
+                                    const dateKey = format(day, 'yyyy-MM-dd');
+                                    const dayIdx = getDay(day);
                                     const daily = dailySchedules.find(s => s.date === dateKey);
-                                    const planned = daily ? daily.hours : (plannedSchedule[getDay(day)] || 0);
+                                    // Robust lookup: check both number and string keys for compatibility
+                                    const planned = daily ? daily.hours : (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
                                     if (planned > 0) return (
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                                             <span className={`text-[10px] font-black italic ${daily ? 'text-nature-green' : 'text-nature-brown'}`}>{planned}h</span>

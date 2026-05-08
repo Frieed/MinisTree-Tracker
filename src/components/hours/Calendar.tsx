@@ -56,8 +56,21 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                     const m = Math.round((report.hours % 1) * 60);
                                     const dailyOverride = dailySchedules.find(s => s.date === dateKey);
                                     const dayIdx = getDay(day);
-                                    // Robust lookup: check both number and string keys for compatibility
-                                    const plannedForDay = dailyOverride ? dailyOverride.hours : (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
+                                    
+                                    let plannedForDay = 0;
+                                    if (dailyOverride) {
+                                        plannedForDay = Number(dailyOverride.hours) || 0;
+                                    } else {
+                                        const sundayKeys = [0, 7, "0", "7"];
+                                        const lookupKeys = dayIdx === 0 ? sundayKeys : [dayIdx, dayIdx.toString()];
+                                        for (const key of lookupKeys) {
+                                            if (plannedSchedule[key as any] !== undefined) {
+                                                plannedForDay = Number(plannedSchedule[key as any]);
+                                                break;
+                                            }
+                                        }
+                                    }
+
                                     let statusColor = 'bg-nature-green';
                                     
                                     if (plannedForDay > 0) {
@@ -87,8 +100,26 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                     const dateKey = format(day, 'yyyy-MM-dd');
                                     const dayIdx = getDay(day);
                                     const daily = dailySchedules.find(s => s.date === dateKey);
-                                    // Robust lookup: check both number and string keys for compatibility
-                                    const planned = daily ? daily.hours : (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
+                                    
+                                    // Extreme robust lookup: 
+                                    // 1. Check for Sunday index 0 or 7 (Some locales vary)
+                                    // 2. Check for string vs number keys
+                                    let planned = 0;
+                                    if (daily) {
+                                        planned = Number(daily.hours) || 0;
+                                    } else {
+                                        const sundayKeys = [0, 7, "0", "7"];
+                                        const lookupKey = dayIdx === 0 ? sundayKeys : [dayIdx, dayIdx.toString()];
+                                        
+                                        // Try to find any match in the schedule
+                                        for (const key of (Array.isArray(lookupKey) ? lookupKey : [lookupKey])) {
+                                            if (plannedSchedule[key as any] !== undefined) {
+                                                planned = Number(plannedSchedule[key as any]);
+                                                break;
+                                            }
+                                        }
+                                    }
+
                                     if (planned > 0) return (
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                                             <span className={`text-[10px] font-black italic ${daily ? 'text-nature-green' : 'text-nature-brown'}`}>{planned}h</span>

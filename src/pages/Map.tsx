@@ -375,7 +375,14 @@ const VisitsMap = () => {
                         </motion.div>
                     ) : (
                         <div key="map-view" className="h-full w-full relative">
-                            <MapContainer center={userPosition || [14.5995, 120.9842]} zoom={13} style={{ height: '100%', width: '100%' }} ref={setMap} zoomControl={false}>
+                            <MapContainer 
+                                center={userPosition || [14.5995, 120.9842]} 
+                                zoom={13} 
+                                style={{ height: '100%', width: '100%' }} 
+                                ref={setMap} 
+                                zoomControl={false}
+                                preferCanvas={true}
+                            >
                                 <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' />
                                 <MapEvents onPositionSelect={() => {}} />
                                 {filteredVisits.map((visit) => (

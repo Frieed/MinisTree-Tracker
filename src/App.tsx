@@ -1,14 +1,22 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.tsx';
 import Layout from './components/Layout.tsx';
-import Dashboard from './pages/Dashboard.tsx';
-import Hours from './pages/Hours.tsx';
-import VisitsMap from './pages/Map.tsx';
-import Schedule from './pages/Schedule.tsx';
-import Profile from './pages/Profile.tsx';
-import Login from './pages/Login.tsx';
-import TreePet from './pages/TreePet.tsx';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const Dashboard = lazy(() => import('./pages/Dashboard.tsx'));
+const Hours = lazy(() => import('./pages/Hours.tsx'));
+const VisitsMap = lazy(() => import('./pages/Map.tsx'));
+const Schedule = lazy(() => import('./pages/Schedule.tsx'));
+const Profile = lazy(() => import('./pages/Profile.tsx'));
+const Login = lazy(() => import('./pages/Login.tsx'));
+const TreePet = lazy(() => import('./pages/TreePet.tsx'));
+
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-nature-cream flex items-center justify-center">
+    <div className="w-12 h-12 border-4 border-nature-green/20 border-t-nature-green rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   const { user, loading } = useAuth();
@@ -42,17 +50,19 @@ function App() {
           animate={{ opacity: 1 }}
           className="h-full w-full"
         >
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="hours" element={<Hours />} />
-              <Route path="schedule" element={<Schedule />} />
-              <Route path="map" element={<VisitsMap />} />
-              <Route path="tree" element={<TreePet />} />
-              <Route path="settings" element={<Profile />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="hours" element={<Hours />} />
+                <Route path="schedule" element={<Schedule />} />
+                <Route path="map" element={<VisitsMap />} />
+                <Route path="tree" element={<TreePet />} />
+                <Route path="settings" element={<Profile />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </motion.div>
       )}
     </AnimatePresence>

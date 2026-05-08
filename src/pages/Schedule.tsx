@@ -68,8 +68,8 @@ const Schedule = () => {
                 className="relative rounded-[2.5rem] shadow-[0_25px_50px_rgba(160,82,45,0.15)] overflow-hidden border border-nature-brown-light/30 min-h-[180px] bg-[#D7C4B1]"
             >
                 {/* 3D Wood Carving Base Background */}
-                <div className="absolute inset-0 bg-cover bg-no-repeat z-0 pointer-events-none" style={{ backgroundImage: `url('/images/carved_calendar.png')`, backgroundPosition: 'center 45%', backgroundSize: 'cover' }} />
-                <div className="absolute inset-0 bg-cover bg-no-repeat z-0 pointer-events-none sm:hidden" style={{ backgroundImage: `url('/images/carved_calendar.png')`, backgroundPosition: '70% 45%', backgroundSize: 'cover' }} />
+                <div className="absolute inset-0 bg-cover bg-no-repeat z-0 pointer-events-none" style={{ backgroundImage: `url('/images/carved_calendar.webp')`, backgroundPosition: 'center 45%', backgroundSize: 'cover' }} />
+                <div className="absolute inset-0 bg-cover bg-no-repeat z-0 pointer-events-none sm:hidden" style={{ backgroundImage: `url('/images/carved_calendar.webp')`, backgroundPosition: '70% 45%', backgroundSize: 'cover' }} />
 
                 {/* Tactile Fine Detail: Fiber Texture Overlay */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-[1] bg-[url('https://www.transparenttextures.com/patterns/felt.png')] mix-blend-overlay" />

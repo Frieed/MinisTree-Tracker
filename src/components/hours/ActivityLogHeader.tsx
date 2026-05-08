@@ -42,7 +42,7 @@ export const ActivityLogHeader = ({ totalHours, dynamicGoal, totalCredit, monthl
             <div 
                 className="absolute inset-0 bg-no-repeat z-0 transition-all duration-700" 
                 style={{ 
-                    backgroundImage: `url('/images/log_bg.png')`, 
+                    backgroundImage: `url('/images/log_bg.webp')`, 
                     backgroundPosition: '50% 65%', 
                     backgroundSize: '160%'
                 }} 

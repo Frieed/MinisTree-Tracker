@@ -39,7 +39,7 @@ const Layout = () => {
       </header>
 
       {/* Main Content */}
-      <main onScroll={handleScroll} className="flex-1 overflow-y-auto pt-[4.5rem] pb-10 scrollbar-hide">
+      <main onScroll={handleScroll} className={`flex-1 ${isModalOpen ? 'overflow-hidden' : 'overflow-y-auto'} pt-[4.5rem] pb-10 scrollbar-hide`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

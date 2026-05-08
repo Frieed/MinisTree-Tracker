@@ -75,10 +75,14 @@ export const AddVisitModal = ({
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[2000] bg-nature-brown-dark/40 backdrop-blur-sm"
+                        className="fixed inset-0 z-[2000] bg-nature-brown-dark/30 backdrop-blur-[2px]"
                     />
                     <motion.div
-                        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                        initial={{ y: '100%' }} 
+                        animate={{ y: 0 }} 
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        style={{ willChange: 'transform' }}
                         className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[3rem] px-6 pt-4 pb-8 z-[2100] shadow-2xl max-h-[95vh] overflow-y-auto"
                     >
                         <div className="w-12 h-1.5 bg-nature-cream rounded-full mx-auto mb-6" />

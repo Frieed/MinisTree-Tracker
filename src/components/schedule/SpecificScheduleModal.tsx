@@ -24,9 +24,13 @@ export const SpecificScheduleModal = ({
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-nature-brown-dark/40 backdrop-blur-sm z-[2000]" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-nature-brown-dark/30 backdrop-blur-[2px] z-[2000]" />
                     <motion.div 
-                        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                        initial={{ y: '100%' }} 
+                        animate={{ y: 0 }} 
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        style={{ willChange: 'transform' }}
                         className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[3rem] p-8 z-[2100] shadow-2xl max-h-[90vh] overflow-y-auto"
                     >
                         <div className="w-12 h-1.5 bg-nature-cream rounded-full mx-auto mb-6" />

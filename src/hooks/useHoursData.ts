@@ -15,7 +15,7 @@ export const useHoursData = (initialDate: Date) => {
     const [isReported, setIsReported] = useState(false);
     const [monthlyStudies, setMonthlyStudies] = useState(0);
     const [dynamicGoal, setDynamicGoal] = useState(50);
-    const [plannedSchedule, setPlannedSchedule] = useState<Record<string | number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
+    const [plannedSchedule, setPlannedSchedule] = useState<Record<string | number, number>>({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
     const [dailySchedules, setDailySchedules] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
@@ -228,6 +228,12 @@ export const useHoursData = (initialDate: Date) => {
         }
     };
 
+    const refreshData = async () => {
+        setLoading(true);
+        await fetchAllData();
+        setLoading(false);
+    };
+
     return {
         currentDate,
         setCurrentDate,
@@ -242,6 +248,7 @@ export const useHoursData = (initialDate: Date) => {
         saveReport,
         deleteReport,
         toggleReported,
-        saveStudies
+        saveStudies,
+        refreshData
     };
 };

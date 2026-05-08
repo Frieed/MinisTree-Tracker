@@ -13,7 +13,7 @@ export const useScheduleData = (initialDate: Date) => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [baseSchedule, setBaseSchedule] = useState<Record<string | number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
+    const [baseSchedule, setBaseSchedule] = useState<Record<string | number, number>>({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
     const [dynamicMonthlyGoal, setDynamicMonthlyGoal] = useState<number>(50);
     const [allSchedules, setAllSchedules] = useState<any[]>([]);
     const [allDailySchedules, setAllDailySchedules] = useState<any[]>([]);

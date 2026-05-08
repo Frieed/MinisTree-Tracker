@@ -15,7 +15,7 @@ export const useHoursData = (initialDate: Date) => {
     const [isReported, setIsReported] = useState(false);
     const [monthlyStudies, setMonthlyStudies] = useState(0);
     const [dynamicGoal, setDynamicGoal] = useState(50);
-    const [plannedSchedule, setPlannedSchedule] = useState<Record<number, number>>({});
+    const [plannedSchedule, setPlannedSchedule] = useState<Record<string | number, number>>({});
     const [dailySchedules, setDailySchedules] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
@@ -34,7 +34,7 @@ export const useHoursData = (initialDate: Date) => {
             reports: any[];
             isReported: boolean;
             monthlyStudies: number;
-            plannedSchedule: Record<number, number>;
+            plannedSchedule: Record<string | number, number>;
             dailySchedules: any[];
             dynamicGoal: number;
         }>(cacheKey);

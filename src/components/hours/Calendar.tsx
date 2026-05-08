@@ -7,7 +7,7 @@ interface CalendarProps {
     currentDate: Date;
     reports: any[];
     dailySchedules: any[];
-    plannedSchedule: Record<number, number>;
+    plannedSchedule: Record<string | number, number>;
     onDayClick: (day: Date) => void;
 }
 

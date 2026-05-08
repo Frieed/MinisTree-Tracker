@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface MonthlyScheduleLogProps {
     currentDate: Date;
-    monthlySchedule: Record<number, number>;
-    setMonthlySchedule: React.Dispatch<React.SetStateAction<Record<number, number>>>;
+    monthlySchedule: Record<string | number, number>;
+    setMonthlySchedule: React.Dispatch<React.SetStateAction<Record<string | number, number>>>;
     specificSchedules: any[];
     onDeleteSpecific: (id: string) => void;
     onCopyFrom: (monthStr: string) => void;

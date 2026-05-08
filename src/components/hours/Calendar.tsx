@@ -14,8 +14,8 @@ interface CalendarProps {
 export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule, onDayClick }: CalendarProps) => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart);
-    const endDate = endOfWeek(monthEnd);
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
     const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
     return (

@@ -177,9 +177,11 @@ export const useDashboardData = () => {
         end: endOfMonth(targetMonthDate)
       }).reduce((acc, day) => {
         const dateStr = format(day, 'yyyy-MM-dd');
+        const dayIdx = getDay(day);
         const specific = dailySchedules.find(s => s.date === dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);
-        return acc + (baseSchedule[getDay(day)] || 0);
+        // Robust lookup for mobile compatibility
+        return acc + (baseSchedule[dayIdx] ?? baseSchedule[dayIdx.toString()] ?? 0);
       }, 0);
 
       return {

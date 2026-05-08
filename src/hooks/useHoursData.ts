@@ -15,7 +15,7 @@ export const useHoursData = (initialDate: Date) => {
     const [isReported, setIsReported] = useState(false);
     const [monthlyStudies, setMonthlyStudies] = useState(0);
     const [dynamicGoal, setDynamicGoal] = useState(50);
-    const [plannedSchedule, setPlannedSchedule] = useState<Record<string | number, number>>({});
+    const [plannedSchedule, setPlannedSchedule] = useState<Record<string | number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
     const [dailySchedules, setDailySchedules] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
@@ -42,7 +42,10 @@ export const useHoursData = (initialDate: Date) => {
             setReports(cached.reports || []);
             setIsReported(cached.isReported || false);
             setMonthlyStudies(cached.monthlyStudies || 0);
-            setPlannedSchedule(cached.plannedSchedule || {});
+            
+            // Ensure fetchAllData runs to overwrite stale cache if needed
+            setPlannedSchedule(cached.plannedSchedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
+            
             setDailySchedules(cached.dailySchedules || []);
             setDynamicGoal(cached.dynamicGoal || 50);
         }

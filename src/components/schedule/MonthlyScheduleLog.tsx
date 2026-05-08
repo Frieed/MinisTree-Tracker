@@ -38,7 +38,7 @@ export const MonthlyScheduleLog = ({
     };
 
     // Filter out the current month from copy options
-    const currentMonthStr = format(currentDate, 'yyyy-MM-01');
+    const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-01`;
     const otherSchedules = savedSchedules
         .filter(s => s.month !== currentMonthStr)
         .sort((a, b) => b.month.localeCompare(a.month));

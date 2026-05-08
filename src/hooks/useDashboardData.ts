@@ -168,7 +168,7 @@ export const useDashboardData = () => {
 
       // Calculate projected schedule
       const targetMonthDate = addMonths(serviceYearStartDate, idx);
-      const targetMonthStr = format(startOfMonth(targetMonthDate), 'yyyy-MM-dd');
+      const targetMonthStr = `${targetMonthDate.getFullYear()}-${String(targetMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
       
       const baseSchedule = monthlySchedules.find(s => s.month === targetMonthStr)?.schedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
       
@@ -176,7 +176,7 @@ export const useDashboardData = () => {
         start: startOfMonth(targetMonthDate),
         end: endOfMonth(targetMonthDate)
       }).reduce((acc, day) => {
-        const dateStr = format(day, 'yyyy-MM-dd');
+        const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayIdx = getDay(day);
         const specific = dailySchedules.find(s => s.date === dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);

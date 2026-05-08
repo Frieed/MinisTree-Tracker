@@ -21,7 +21,7 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
     return (
         <div className="grid grid-cols-7 divide-x divide-y divide-nature-cream border-l border-t border-nature-cream text-center">
             {calendarDays.map((day, idx) => {
-                const dateKey = format(day, 'yyyy-MM-dd');
+                const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                 const report = reports.find(r => r.date === dateKey);
                 const isCurrentMonth = isSameMonth(day, monthStart);
 
@@ -97,7 +97,7 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                         ) : !report && isCurrentMonth ? (
                             <>
                                 {(() => {
-                                    const dateKey = format(day, 'yyyy-MM-dd');
+                                    const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                                     const dayIdx = getDay(day);
                                     const daily = dailySchedules.find(s => s.date === dateKey);
                                     

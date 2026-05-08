@@ -22,7 +22,7 @@ export const useScheduleData = (initialDate: Date) => {
     const fetchAllData = useCallback(async () => {
         if (!user) return;
         const monthStart = startOfMonth(currentDate);
-        const monthStr = format(monthStart, 'yyyy-MM-dd');
+        const monthStr = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
         const cacheKey = `schedule_${user.id}_${monthStr}`;
 
         // Load from cache
@@ -50,9 +50,9 @@ export const useScheduleData = (initialDate: Date) => {
         try {
             const [monthlyRes, allMonthlyRes, allDailyRes, specificRes] = await Promise.all([
                 supabase.from('monthly_schedules').select('schedule').eq('user_id', user.id).eq('month', monthStr).maybeSingle(),
-                supabase.from('monthly_schedules').select('*').eq('user_id', user.id).gte('month', format(syStart, 'yyyy-MM-dd')).lte('month', format(syEnd, 'yyyy-MM-dd')).order('month', { ascending: true }),
-                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', format(syStart, 'yyyy-MM-dd')).lte('date', format(syEnd, 'yyyy-MM-dd')),
-                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', format(monthStart, 'yyyy-MM-dd')).lte('date', format(endOfMonth(currentDate), 'yyyy-MM-dd')).order('date', { ascending: true })
+                supabase.from('monthly_schedules').select('*').eq('user_id', user.id).gte('month', `${syStart.getFullYear()}-${String(syStart.getMonth() + 1).padStart(2, '0')}-01`).lte('month', `${syEnd.getFullYear()}-${String(syEnd.getMonth() + 1).padStart(2, '0')}-01`),
+                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', `${syStart.getFullYear()}-${String(syStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${syEnd.getFullYear()}-${String(syEnd.getMonth() + 1).padStart(2, '0')}-01`),
+                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${endOfMonth(currentDate).getFullYear()}-${String(endOfMonth(currentDate).getMonth() + 1).padStart(2, '0')}-${String(endOfMonth(currentDate).getDate()).padStart(2, '0')}`).order('date', { ascending: true })
             ]);
 
             const newBase = monthlyRes.data?.schedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
@@ -101,7 +101,7 @@ export const useScheduleData = (initialDate: Date) => {
     const saveMonthlySchedule = async () => {
         if (!user) return { error: new Error('User not authenticated') };
         setSaving(true);
-        const monthStr = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+        const monthStr = `${startOfMonth(currentDate).getFullYear()}-${String(startOfMonth(currentDate).getMonth() + 1).padStart(2, '0')}-01`;
         
         try {
             const { error } = await supabase.from('monthly_schedules').upsert({
@@ -183,7 +183,7 @@ export const useScheduleData = (initialDate: Date) => {
         start: startOfMonth(currentDate),
         end: endOfMonth(currentDate)
     }).reduce((acc, day) => {
-        const dateStr = format(day, 'yyyy-MM-dd');
+        const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayIdx = getDay(day);
         const specific = specificSchedules.find(s => s.date === dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);

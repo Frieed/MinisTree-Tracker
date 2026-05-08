@@ -34,7 +34,12 @@ export const useScheduleData = (initialDate: Date) => {
             dynamicMonthlyGoal: number;
         }>(cacheKey);
         if (cached) {
-            setBaseSchedule(cached.baseSchedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
+            // AGGRESSIVE CACHE VALIDATION:
+            // If Sunday (0) is missing in the cached routine, treat it as stale.
+            const hasSunday = cached.baseSchedule && (cached.baseSchedule[0] !== undefined || cached.baseSchedule["0"] !== undefined);
+            const schedule = hasSunday ? cached.baseSchedule : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
+            
+            setBaseSchedule(schedule);
             setAllSchedules(cached.allSchedules || []);
             setAllDailySchedules(cached.allDailySchedules || []);
             setSpecificSchedules(cached.specificSchedules || []);

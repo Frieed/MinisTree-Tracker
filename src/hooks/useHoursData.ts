@@ -43,11 +43,19 @@ export const useHoursData = (initialDate: Date) => {
             setIsReported(cached.isReported || false);
             setMonthlyStudies(cached.monthlyStudies || 0);
             
-            // Ensure fetchAllData runs to overwrite stale cache if needed
-            setPlannedSchedule(cached.plannedSchedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
+            // AGGRESSIVE CACHE VALIDATION:
+            // If the cache exists but Sunday (0) is missing, we treat the whole schedule as stale.
+            const hasSunday = cached.plannedSchedule && (cached.plannedSchedule[0] !== undefined || cached.plannedSchedule["0"] !== undefined);
+            const schedule = hasSunday ? cached.plannedSchedule : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
             
+            setPlannedSchedule(schedule);
             setDailySchedules(cached.dailySchedules || []);
             setDynamicGoal(cached.dynamicGoal || 50);
+
+            // If Sunday was missing, we immediately trigger a fresh fetch even if we have other cached data
+            if (!hasSunday) {
+                console.log('[Cache] Sunday missing, forcing refresh...');
+            }
         }
 
         try {

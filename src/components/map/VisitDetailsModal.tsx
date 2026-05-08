@@ -87,8 +87,8 @@ export const VisitDetailsModal = ({
 
                             {/* Action Bar */}
                             <div className="space-y-3">
-                                <button onClick={onWater} className="w-full h-16 bg-gradient-to-r from-water-blue to-nature-green text-white rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-water-blue/20 font-black uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all">
-                                    <WateringCan size={24} /> Sprinkle this Seedling
+                                <button onClick={onWater} className="w-full h-16 bg-water-blue text-white rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-water-blue/20 font-black uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all">
+                                    <Droplets size={20} /> Sprinkle & Update {visit.is_bible_study ? 'Tree' : 'Seedling'}
                                 </button>
                                 <button onClick={onToggleStudy} className={`w-full py-4 rounded-[2rem] border-2 font-black uppercase tracking-widest text-[11px] transition-all flex justify-center items-center gap-2 hover:scale-[1.02] active:scale-95 ${visit.is_bible_study ? 'border-nature-green bg-nature-green/10 text-nature-green' : 'border-nature-brown/20 bg-white text-nature-brown shadow-sm hover:border-nature-green hover:text-nature-green hover:bg-nature-green/5'}`}>
                                     <Heart size={16} fill={visit.is_bible_study ? 'currentColor' : 'none'} />

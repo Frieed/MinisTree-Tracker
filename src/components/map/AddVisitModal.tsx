@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, MapPin, Calendar, Clock, FileText, Loader2, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { X, User, MapPin, Calendar, Clock, FileText, Loader2, CheckCircle2, ChevronRight, ChevronLeft, BookOpen, HelpCircle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import { seedlingIcon } from './MapIcons';
 import { useEffect } from 'react';
@@ -22,6 +22,10 @@ interface AddVisitModalProps {
     setDay: (d: string) => void;
     time: string;
     setTime: (t: string) => void;
+    literature: string;
+    setLiterature: (l: string) => void;
+    questions: string;
+    setQuestions: (q: string) => void;
     notes: string;
     setNotes: (n: string) => void;
     position: [number, number] | null;
@@ -63,7 +67,7 @@ const ModalMap = ({ position, setPosition }: { position: [number, number] | null
 export const AddVisitModal = ({
     isOpen, onClose, step, setStep, editing,
     name, setName, address, setAddress, gender, setGender,
-    day, setDay, time, setTime, notes, setNotes, position, setPosition, userPosition,
+    day, setDay, time, setTime, literature, setLiterature, questions, setQuestions, notes, setNotes, position, setPosition, userPosition,
     onSave, saving
 }: AddVisitModalProps) => {
     if (typeof document === 'undefined') return null;
@@ -110,10 +114,22 @@ export const AddVisitModal = ({
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> Remarks / Initial Notes</label>
-                                        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all h-24" placeholder="What did you talk about?" />
-                                    </div>
+                                    {!editing && (
+                                        <>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><BookOpen size={12} /> LITERATURE GIVEN</label>
+                                                <input type="text" value={literature} onChange={(e) => setLiterature(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all" placeholder="E.g. Enjoy Life Forever!" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><HelpCircle size={12} /> NEXT TOPIC / QUESTION</label>
+                                                <input type="text" value={questions} onChange={(e) => setQuestions(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all" placeholder="E.g. Why does God allow suffering?" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> DETAILED REMARKS</label>
+                                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all h-24" placeholder="Mention special requests or interesting points..." />
+                                            </div>
+                                        </>
+                                    )}
                                     <button
                                         onClick={() => setStep(1)}
                                         disabled={!name || !gender}

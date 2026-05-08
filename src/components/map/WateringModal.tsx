@@ -48,34 +48,38 @@ export const WateringModal = ({
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h3 className="text-3xl font-black text-nature-brown-dark tracking-tight">{visitName}</h3>
-                                <p className="text-[10px] uppercase font-bold text-nature-brown-light tracking-widest mt-2">Nourish your seedling with gentle drops of update.</p>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <div className="px-2 py-0.5 bg-water-blue/10 rounded-full border border-water-blue/20">
+                                        <p className="text-[9px] uppercase font-black text-water-blue tracking-widest">Nourish & Update</p>
+                                    </div>
+                                </div>
                             </div>
                             <button onClick={onClose} className="p-2 bg-nature-cream hover:bg-nature-brown/10 rounded-full text-nature-brown transition-colors"><X size={20} /></button>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Calendar size={12} /> Visit Date</label>
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><Calendar size={12} /> Date of Visit</label>
                                 <input type="date" value={lastVisited} onChange={(e) => setLastVisited(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all" />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><BookOpen size={12} /> GIVEN</label>
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><BookOpen size={12} /> Placed Literature</label>
                                 <input type="text" value={newGiven} onChange={(e) => setNewGiven(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all" placeholder="E.g. Enjoy Life Forever!" />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><HelpCircle size={12} /> RV QUESTION</label>
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><HelpCircle size={12} /> Next Topic / Question</label>
                                 <input type="text" value={newQuestions} onChange={(e) => setNewQuestions(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all" placeholder="E.g. Why does God allow suffering?" />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> REMARKS</label>
-                                <textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all h-24" placeholder="Briefly summarize the conversation..." />
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> Conversation Remarks</label>
+                                <textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-water-blue transition-all h-24" placeholder="Briefly summarize what was discussed..." />
                             </div>
 
                             <button
                                 onClick={onSave} disabled={saving}
-                                className="w-full h-16 bg-water-blue text-white rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-water-blue/20 font-black uppercase tracking-widest text-sm transition-all"
+                                className="w-full h-16 bg-water-blue text-white rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-water-blue/20 font-black uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all"
                             >
-                                {saving ? <Loader2 className="animate-spin" /> : <><Droplets size={20} /> Record Visit</>}
+                                {saving ? <Loader2 className="animate-spin" /> : <><Droplets size={20} /> Save Update & Nourish</>}
                             </button>
                         </div>
                     </motion.div>

@@ -70,10 +70,11 @@ export const useVisits = () => {
         // Optimistic UI
         const tempId = editingId || `temp-${Date.now()}`;
         const optimisticVisit = { ...visitData, id: tempId, user_id: user.id };
+        
         if (editingId) {
-            setVisits(visits.map(v => v.id === editingId ? optimisticVisit : v));
+            setVisits(prev => prev.map(v => v.id === editingId ? { ...v, ...optimisticVisit } : v));
         } else {
-            setVisits([optimisticVisit, ...visits]);
+            setVisits(prev => [optimisticVisit, ...prev]);
         }
 
         try {
@@ -84,7 +85,24 @@ export const useVisits = () => {
                 result = await supabase.from('return_visits').insert({ ...visitData, user_id: user.id }).select().single();
             }
             if (result.error) throw result.error;
-            await fetchVisits();
+            
+            const savedData = result.data;
+            if (savedData) {
+                if (editingId) {
+                    setVisits(prev => prev.map(v => v.id === editingId ? savedData : v));
+                } else {
+                    // Replace the temp ID visit with the real one
+                    setVisits(prev => prev.map(v => v.id === tempId ? savedData : v));
+                }
+                // Update cache
+                const cacheKey = `visits_${user.id}`;
+                const current = await offlineStore.getItem<any[]>(cacheKey) || [];
+                const updated = editingId 
+                    ? current.map(v => v.id === editingId ? savedData : v)
+                    : [savedData, ...current];
+                await offlineStore.setItem(cacheKey, updated);
+            }
+
             return result;
         } catch (err) {
             await offlineStore.addToOutbox({
@@ -99,7 +117,7 @@ export const useVisits = () => {
     const deleteVisit = async (id: string) => {
         if (!user) return { error: new Error('User not authenticated') };
         
-        setVisits(visits.filter(v => v.id !== id));
+        setVisits(prev => prev.filter(v => v.id !== id));
 
         try {
             const { error } = await supabase.from('return_visits').delete().eq('id', id).eq('user_id', user.id);
@@ -120,8 +138,8 @@ export const useVisits = () => {
         
         // Optimistic UI
         const tempLogId = `temp-log-${Date.now()}`;
-        setVisitLogs([{ ...logData, id: tempLogId, visit_id: visitId }, ...visitLogs]);
-        setVisits(visits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
+        setVisitLogs(prev => [{ ...logData, id: tempLogId, visit_id: visitId }, ...prev]);
+        setVisits(prev => prev.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
 
         try {
             const { error: logError } = await supabase.from('visit_logs').insert({ visit_id: visitId, ...logData });
@@ -130,7 +148,11 @@ export const useVisits = () => {
             const result = await supabase.from('return_visits').update(latestUpdate).eq('id', visitId).eq('user_id', user.id);
             if (result.error) throw result.error;
 
-            await fetchVisits();
+            // We don't need a full refetch here if we update cache manually
+            const cacheKey = `visits_${user.id}`;
+            const cachedVisits = await offlineStore.getItem<any[]>(cacheKey) || [];
+            await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
+            
             await fetchVisitLogs(visitId);
             return result;
         } catch (err) {
@@ -152,12 +174,17 @@ export const useVisits = () => {
         if (!user) return { error: new Error('User not authenticated') };
         
         const newStatus = !isBibleStudy;
-        setVisits(visits.map(v => v.id === visitId ? { ...v, is_bible_study: newStatus } : v));
+        setVisits(prev => prev.map(v => v.id === visitId ? { ...v, is_bible_study: newStatus } : v));
 
         try {
             const result = await supabase.from('return_visits').update({ is_bible_study: newStatus }).eq('id', visitId).eq('user_id', user.id);
             if (result.error) throw result.error;
-            await fetchVisits();
+            
+            // Update cache
+            const cacheKey = `visits_${user.id}`;
+            const cached = await offlineStore.getItem<any[]>(cacheKey) || [];
+            await offlineStore.setItem(cacheKey, cached.map(v => v.id === visitId ? { ...v, is_bible_study: newStatus } : v));
+            
             return result;
         } catch (err) {
             await offlineStore.addToOutbox({
@@ -170,7 +197,7 @@ export const useVisits = () => {
     };
 
     const deleteLog = async (logId: string, visitId: string) => {
-        setVisitLogs(visitLogs.filter(l => l.id !== logId));
+        setVisitLogs(prev => prev.filter(l => l.id !== logId));
 
         try {
             const { error } = await supabase.from('visit_logs').delete().eq('id', logId);

@@ -10,6 +10,7 @@ import { WateringCan, seedlingIcon, maturePlantIcon, dropletIcon } from '../comp
 import { AddVisitModal } from '../components/map/AddVisitModal';
 import { VisitDetailsModal } from '../components/map/VisitDetailsModal';
 import { WateringModal } from '../components/map/WateringModal';
+import { DeleteConfirmationModal } from '../components/map/DeleteConfirmationModal';
 import { useUI } from '../context/UIContext';
 
 interface Visit {
@@ -64,21 +65,23 @@ const VisitsMap = () => {
     // Form State
     const [newName, setNewName] = useState('');
     const [newAddress, setNewAddress] = useState('');
-    const [newNotes, setNewNotes] = useState('');
     const [newPosition, setNewPosition] = useState<[number, number] | null>(null);
     const [newDay, setNewDay] = useState<string>('');
     const [newTime, setNewTime] = useState<string>('');
     const [newGender, setNewGender] = useState<string>('');
-    const [newGiven, setNewGiven] = useState<string>('');
-    const [newQuestions, setNewQuestions] = useState<string>('');
     const [lastVisited, setLastVisited] = useState<string>(new Date().toISOString().split('T')[0]);
 
     const [waterGiven, setWaterGiven] = useState<string>('');
     const [waterQuestions, setWaterQuestions] = useState<string>('');
     const [waterNotes, setWaterNotes] = useState<string>('');
 
+    const [initialLiterature, setInitialLiterature] = useState<string>('');
+    const [initialQuestions, setInitialQuestions] = useState<string>('');
+    const [initialNotes, setInitialNotes] = useState<string>('');
+
     const [showWater, setShowWater] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
     const [typeFilter, setTypeFilter] = useState<string>('All');
     const [genderFilter, setGenderFilter] = useState<string>('All');
@@ -89,21 +92,22 @@ const VisitsMap = () => {
     const [openFilterId, setOpenFilterId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (showAdd || showWater || showDetails || noLocationVisit) {
+        if (showAdd || showWater || showDetails || noLocationVisit || showDeleteConfirm) {
             setGlobalModalOpen(true);
             return () => setGlobalModalOpen(false);
         }
-    }, [showAdd, showWater, showDetails, noLocationVisit, setGlobalModalOpen]);
+    }, [showAdd, showWater, showDetails, noLocationVisit, showDeleteConfirm, setGlobalModalOpen]);
 
     useEffect(() => {
         if (editingVisit) {
-            setNewName(editingVisit.name); setNewAddress(editingVisit.address || ''); setNewNotes(editingVisit.notes || '');
+            setNewName(editingVisit.name); setNewAddress(editingVisit.address || ''); 
             setNewDay(editingVisit.availability_day || ''); setNewTime(editingVisit.availability_time || '');
-            setNewGender(editingVisit.gender || ''); setNewGiven(editingVisit.literature_given || '');
-            setNewQuestions(editingVisit.rv_questions || ''); setNewPosition([editingVisit.latitude, editingVisit.longitude]);
+            setNewGender(editingVisit.gender || ''); 
+            setNewPosition([editingVisit.latitude, editingVisit.longitude]);
         } else {
-            setNewName(''); setNewAddress(''); setNewNotes(''); setNewDay(''); setNewTime('');
-            setNewGender(''); setNewGiven(''); setNewQuestions(''); setNewPosition(null);
+            setNewName(''); setNewAddress(''); setNewDay(''); setNewTime('');
+            setNewGender(''); setNewPosition(null);
+            setInitialLiterature(''); setInitialQuestions(''); setInitialNotes('');
         }
     }, [editingVisit]);
 
@@ -135,12 +139,29 @@ const VisitsMap = () => {
     const handleSaveVisitLocal = async () => {
         if (!newName) return;
         setSaving(true);
-        const { error } = await saveVisit({
-            name: newName, address: newAddress, notes: newNotes, availability_day: newDay,
-            availability_time: newTime, gender: newGender, literature_given: newGiven,
-            rv_questions: newQuestions, latitude: newPosition ? newPosition[0] : 0,
+        const { data, error } = await saveVisit({
+            name: newName, address: newAddress, availability_day: newDay,
+            availability_time: newTime, gender: newGender, 
+            latitude: newPosition ? newPosition[0] : 0,
             longitude: newPosition ? newPosition[1] : 0
         }, editingVisit?.id);
+
+        if (!error && !editingVisit?.id) {
+            // If it's a new visit, create the initial log
+            const visitId = (data as any)?.id;
+            if (visitId && (initialLiterature || initialQuestions || initialNotes)) {
+                await waterVisit(visitId, {
+                    visit_date: new Date().toISOString().split('T')[0],
+                    literature: initialLiterature,
+                    questions: initialQuestions,
+                    notes: initialNotes
+                }, {
+                    literature_given: initialLiterature,
+                    rv_questions: initialQuestions
+                });
+            }
+        }
+
         if (!error) { setShowAdd(false); setEditingVisit(null); }
         setSaving(false);
     };
@@ -409,7 +430,10 @@ const VisitsMap = () => {
                 isOpen={showAdd} onClose={() => { setShowAdd(false); setEditingVisit(null); }} step={formStep} setStep={setFormStep} editing={!!editingVisit}
                 name={newName} setName={setNewName} address={newAddress} setAddress={setNewAddress} gender={newGender} setGender={setNewGender}
                 day={newDay} setDay={setNewDay} time={newTime} setTime={setNewTime}
-                notes={newNotes} setNotes={setNewNotes} position={newPosition}
+                literature={initialLiterature} setLiterature={setInitialLiterature}
+                questions={initialQuestions} setQuestions={setInitialQuestions}
+                notes={initialNotes} setNotes={setInitialNotes}
+                position={newPosition}
                 setPosition={setNewPosition} userPosition={userPosition}
                 onSave={handleSaveVisitLocal} saving={saving}
             />
@@ -417,7 +441,7 @@ const VisitsMap = () => {
             <VisitDetailsModal
                 isOpen={showDetails} onClose={() => setShowDetails(false)} visit={editingVisit} logs={visitLogs} loadingLogs={loadingLogs}
                 onEdit={() => { setShowDetails(false); setFormStep(0); setShowAdd(true); setActiveTab('map'); }}
-                onDelete={() => { if (window.confirm('Delete this visit?')) { deleteVisit(editingVisit.id); setShowDetails(false); } }}
+                onDelete={() => setShowDeleteConfirm(true)}
                 onWater={() => { setShowDetails(false); setWaterGiven(''); setWaterQuestions(''); setWaterNotes(''); setShowWater(true); }}
                 onToggleStudy={async () => {
                     const res = await toggleBibleStudy(editingVisit.id, editingVisit.is_bible_study);
@@ -431,6 +455,20 @@ const VisitsMap = () => {
                 lastVisited={lastVisited} setLastVisited={setLastVisited} newGiven={waterGiven} setNewGiven={setWaterGiven}
                 newQuestions={waterQuestions} setNewQuestions={setWaterQuestions} newNotes={waterNotes} setNewNotes={setWaterNotes}
                 onSave={handleWaterVisitLocal} saving={saving}
+            />
+
+            <DeleteConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={async () => {
+                    if (editingVisit) {
+                        await deleteVisit(editingVisit.id);
+                        setShowDeleteConfirm(false);
+                        setShowDetails(false);
+                    }
+                }}
+                itemName={editingVisit?.name || ''}
+                itemType={editingVisit?.is_bible_study ? 'Bible Study' : 'Return Visit'}
             />
 
             <AnimatePresence>

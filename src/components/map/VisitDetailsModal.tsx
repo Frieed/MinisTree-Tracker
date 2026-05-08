@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { createPortal } from 'react-dom';
-import { WateringCan } from './MapIcons';
+
 
 interface VisitDetailsModalProps {
     isOpen: boolean;

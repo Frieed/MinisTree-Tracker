@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Search, Navigation, List, Map as MapIcon, MapPinOff, Loader2, Sprout, Mars, Venus, CalendarDays } from 'lucide-react';
+import { MapPin, Search, Navigation, List, Map as MapIcon, MapPinOff, Loader2, Sprout, Mars, Venus, CalendarDays, Droplets } from 'lucide-react';
 import L from 'leaflet';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useVisits } from '../hooks/useVisits';
-import { WateringCan, seedlingIcon, maturePlantIcon, dropletIcon } from '../components/map/MapIcons';
+import { seedlingIcon, maturePlantIcon, dropletIcon } from '../components/map/MapIcons';
 import { AddVisitModal } from '../components/map/AddVisitModal';
 import { VisitDetailsModal } from '../components/map/VisitDetailsModal';
 import { WateringModal } from '../components/map/WateringModal';
@@ -139,12 +139,14 @@ const VisitsMap = () => {
     const handleSaveVisitLocal = async () => {
         if (!newName) return;
         setSaving(true);
-        const { data, error } = await saveVisit({
+        const result = await saveVisit({
             name: newName, address: newAddress, availability_day: newDay,
             availability_time: newTime, gender: newGender, 
             latitude: newPosition ? newPosition[0] : 0,
             longitude: newPosition ? newPosition[1] : 0
-        }, editingVisit?.id);
+        }, editingVisit?.id) as any;
+
+        const { data, error } = result;
 
         if (!error && !editingVisit?.id) {
             // If it's a new visit, create the initial log
@@ -372,7 +374,7 @@ const VisitsMap = () => {
                                                 onClick={(e) => { e.stopPropagation(); setEditingVisit(visit); setWaterGiven(''); setWaterQuestions(''); setWaterNotes(''); setShowWater(true); }}
                                                 className="px-4 h-full flex items-center justify-center text-[#5c8ed1] bg-[#ebf3fe]/40 hover:bg-[#ebf3fe] transition-colors"
                                             >
-                                                <WateringCan size={24} />
+                                                <Droplets size={24} />
                                             </button>
                                             <div className="w-[1.5px] h-7 bg-[#d1e2e2]" />
                                             <button 

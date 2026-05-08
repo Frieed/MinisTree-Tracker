@@ -36,25 +36,25 @@ export const LogModal = ({
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         style={{ willChange: 'transform' }}
-                        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[2100] shadow-2xl max-h-[92vh] flex flex-col"
+                        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[2100] shadow-2xl max-h-[90svh] flex flex-col"
                     >
-                        {/* Drag Handle */}
-                        <div className="py-3 shrink-0">
-                            <div className="w-10 h-1 bg-nature-cream rounded-full mx-auto" />
+                        {/* Drag Handle - Slimmer */}
+                        <div className="py-2 shrink-0">
+                            <div className="w-8 h-1 bg-nature-cream/60 rounded-full mx-auto" />
                         </div>
 
-                        {/* Header */}
-                        <div className="px-6 pb-4 flex justify-between items-start shrink-0">
+                        {/* Header - More Compact */}
+                        <div className="px-6 pb-2 flex justify-between items-center shrink-0">
                             <div>
-                                <h3 className="text-xl font-black text-nature-brown-dark tracking-tight">{format(selectedDay, 'EEEE, MMM do')}</h3>
-                                <p className="text-nature-brown font-bold text-[9px] uppercase tracking-widest">Daily Activity Log</p>
+                                <h3 className="text-lg font-black text-nature-brown-dark tracking-tight">{format(selectedDay, 'MMM do, yyyy')}</h3>
+                                <p className="text-nature-brown font-bold text-[8px] uppercase tracking-widest">Activity Log</p>
                             </div>
-                            <button onClick={onClose} className="p-2 bg-nature-cream hover:bg-nature-brown/10 rounded-full text-nature-brown transition-colors"><X size={16} /></button>
+                            <button onClick={onClose} className="p-2 bg-nature-cream/50 hover:bg-nature-brown/10 rounded-full text-nature-brown transition-colors"><X size={14} /></button>
                         </div>
 
                         {/* Scrollable Body */}
                         <div className="flex-1 overflow-y-auto px-6 py-2 min-h-0 space-y-4">
-                            <div className="space-y-1.5">
+                            <div className="space-y-1">
                                 <label className="text-[9px] font-black uppercase tracking-widest text-nature-brown-light flex items-center gap-1.5"><Clock size={10} /> Time Spent</label>
                                 <div className="flex gap-3">
                                     <div className="flex-1 text-center">
@@ -64,7 +64,7 @@ export const LogModal = ({
                                             value={hours === 0 ? '' : hours} 
                                             onChange={(e) => setHours(e.target.value === '' ? 0 : Number(e.target.value))} 
                                             onFocus={(e) => e.target.select()}
-                                            className="w-full bg-nature-cream-light rounded-2xl py-3 text-xl font-black text-center focus:ring-4 ring-nature-green/10 outline-none transition-all border border-nature-cream focus:placeholder:text-transparent" 
+                                            className="w-full bg-nature-cream-light rounded-2xl py-2.5 text-xl font-black text-center focus:ring-4 ring-nature-green/10 outline-none transition-all border border-nature-cream" 
                                             placeholder="0" 
                                         />
                                         <span className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest">Hours</span>
@@ -76,47 +76,41 @@ export const LogModal = ({
                                             value={minutes === 0 ? '' : minutes} 
                                             onChange={(e) => setMinutes(e.target.value === '' ? 0 : Number(e.target.value))} 
                                             onFocus={(e) => e.target.select()}
-                                            className="w-full bg-nature-cream-light rounded-2xl py-3 text-xl font-black text-center focus:ring-4 ring-nature-green/10 outline-none transition-all border border-nature-cream focus:placeholder:text-transparent" 
+                                            className="w-full bg-nature-cream-light rounded-2xl py-2.5 text-xl font-black text-center focus:ring-4 ring-nature-green/10 outline-none transition-all border border-nature-cream" 
                                             placeholder="0" 
                                         />
-                                        <span className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest">Minutes</span>
+                                        <span className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest">Mins</span>
                                     </div>
                                 </div>
                             </div>
-                            <div className="space-y-1.5 pb-2">
+                            <div className="space-y-1">
                                 <label className="text-[9px] font-black uppercase tracking-widest text-nature-brown-light flex items-center gap-1.5"><CheckCircle2 size={10} /> Credit Hours</label>
-                                <div className="relative group">
+                                <div className="relative">
                                     <input 
                                         type="number" 
                                         inputMode="decimal"
                                         value={credit === 0 ? '' : credit} 
                                         onChange={(e) => setCredit(e.target.value === '' ? 0 : Number(e.target.value))} 
                                         onFocus={(e) => e.target.select()}
-                                        className="w-full bg-nature-cream-light rounded-2xl py-3 text-xl font-black text-center focus:ring-4 ring-nature-green/10 outline-none transition-all border border-nature-cream focus:placeholder:text-transparent" 
+                                        className="w-full bg-nature-cream-light rounded-2xl py-2.5 text-xl font-black text-center focus:ring-4 ring-nature-green/10 outline-none transition-all border border-nature-cream" 
                                         placeholder="0" 
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-nature-green"><Plus size={18} /></div>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-nature-green/50"><Plus size={16} /></div>
                                 </div>
                             </div>
                             {error && (
-                                <motion.p 
-                                    initial={{ opacity: 0, height: 0 }} 
-                                    animate={{ opacity: 1, height: 'auto' }} 
-                                    className="text-[10px] font-black text-rose-500 uppercase tracking-widest text-center"
-                                >
-                                    {error}
-                                </motion.p>
+                                <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest text-center py-1">{error}</p>
                             )}
                         </div>
 
-                        {/* Sticky Footer */}
-                        <div className="px-6 py-5 border-t border-nature-cream shrink-0 bg-white rounded-b-[2.5rem]">
+                        {/* Sticky Footer - Extra padding for mobile keyboard/nav bars */}
+                        <div className="px-6 pt-4 pb-8 border-t border-nature-cream shrink-0 bg-white">
                             <div className="flex gap-3">
                                 {hasExistingReport && (
-                                    <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-500 rounded-2xl border border-rose-100 transition-transform active:scale-95 shrink-0"><Trash2 size={20} /></button>
+                                    <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-500 rounded-2xl border border-rose-100 transition-transform active:scale-95 shrink-0"><Trash2 size={18} /></button>
                                 )}
                                 <button onClick={onSave} disabled={loading} className="flex-1 bg-nature-green text-white rounded-2xl h-12 text-sm font-black uppercase tracking-[0.1em] shadow-lg shadow-nature-green/20 transition-all active:scale-95 disabled:opacity-50">
-                                    {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Save Activity'}
+                                    {loading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Save Activity'}
                                 </button>
                             </div>
                         </div>

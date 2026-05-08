@@ -1,0 +1,29 @@
+/* Custom Global Styles for MinisTree Tracker */
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+    @apply rounded-2xl border-none shadow-premium !important;
+}
+
+.leaflet-popup-tip {
+    @apply bg-white !important;
+}
+
+/* Animations */
+@keyframes grow {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.animate-grow {
+    animation: grow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}

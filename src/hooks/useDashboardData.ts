@@ -22,7 +22,12 @@ export const useDashboardData = () => {
       const cacheKey = `dashboard_${user.id}`;
       
       // Load from cache first
-      const cached = await offlineStore.getItem<any>(cacheKey);
+      const cached = await offlineStore.getItem<{
+        reports: any[];
+        submissions: any[];
+        monthlySchedules: any[];
+        dailySchedules: any[];
+      }>(cacheKey);
       if (cached) {
         setReports(cached.reports || []);
         setSubmissions(cached.submissions || []);

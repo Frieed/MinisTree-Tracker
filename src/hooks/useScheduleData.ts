@@ -26,7 +26,13 @@ export const useScheduleData = (initialDate: Date) => {
         const cacheKey = `schedule_${user.id}_${monthStr}`;
 
         // Load from cache
-        const cached = await offlineStore.getItem<any>(cacheKey);
+        const cached = await offlineStore.getItem<{
+            baseSchedule: Record<number, number>;
+            allSchedules: any[];
+            allDailySchedules: any[];
+            specificSchedules: any[];
+            dynamicMonthlyGoal: number;
+        }>(cacheKey);
         if (cached) {
             setBaseSchedule(cached.baseSchedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
             setAllSchedules(cached.allSchedules || []);

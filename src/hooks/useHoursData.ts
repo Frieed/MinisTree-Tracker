@@ -30,7 +30,14 @@ export const useHoursData = (initialDate: Date) => {
         setLoading(true);
 
         // Load from cache first for instant UI
-        const cached = await offlineStore.getItem<any>(cacheKey);
+        const cached = await offlineStore.getItem<{
+            reports: any[];
+            isReported: boolean;
+            monthlyStudies: number;
+            plannedSchedule: Record<number, number>;
+            dailySchedules: any[];
+            dynamicGoal: number;
+        }>(cacheKey);
         if (cached) {
             setReports(cached.reports || []);
             setIsReported(cached.isReported || false);
@@ -122,7 +129,7 @@ export const useHoursData = (initialDate: Date) => {
 
             if (res.error) throw res.error;
             await fetchAllData();
-        } catch (err) {
+        } catch (err: any) {
             console.log('[Offline] Saving to outbox...');
             await offlineStore.addToOutbox({
                 table: 'reports',
@@ -131,7 +138,7 @@ export const useHoursData = (initialDate: Date) => {
             });
             return { error: null, offline: true };
         }
-        return res;
+        return { error: (res as any).error, data: (res as any).data };
     };
 
     const deleteReport = async (date: Date) => {

@@ -22,8 +22,8 @@ export const offlineStore = {
     return localforage.setItem(key, value);
   },
 
-  async getItem(key: string) {
-    return localforage.getItem(key);
+  async getItem<T>(key: string): Promise<T | null> {
+    return localforage.getItem<T>(key);
   },
 
   // Outbox management

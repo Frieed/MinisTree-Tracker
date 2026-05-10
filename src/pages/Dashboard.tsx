@@ -210,7 +210,7 @@ const Dashboard = () => {
               </thead>
               <tbody className="divide-y divide-nature-cream">
                 {monthlySummary.map((item: any, idx: number) => {
-                  const { month, data, isNow, isFuture, isReported, monthGoal, reachedGoal, projectedSchedule } = item;
+                  const { month, data, isNow, isFuture, isReported, monthGoal, projectedSchedule } = item;
 
                   return (
                     <tr key={idx} className={`group hover:bg-nature-cream/30 transition-colors ${isNow ? 'bg-nature-green/5' : ''}`}>

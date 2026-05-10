@@ -4,6 +4,7 @@ import { useServiceYear } from '../context/ServiceYearContext';
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useHoursData } from '../hooks/useHoursData';
 import { ActivityLogHeader } from '../components/hours/ActivityLogHeader';
+import { ReportEncouragementModal } from '../components/hours/ReportEncouragementModal';
 import { Calendar } from '../components/hours/Calendar';
 import { LogModal, StudiesModal } from '../components/hours/HoursModals';
 import { useUI } from '../context/UIContext';
@@ -14,13 +15,14 @@ const Hours = () => {
     const {
         currentDate, setCurrentDate,
         reports, isReported, monthlyStudies, dynamicGoal,
-        plannedSchedule, dailySchedules, loading, statusLoading,
+        plannedSchedule, dailySchedules, scheduleToDate, monthScheduleTotal, nextMonthGoal, loading, statusLoading,
         saveReport, deleteReport, toggleReported, saveStudies
     } = useHoursData(new Date());
 
     const [selectedDay, setSelectedDay] = useState<Date | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isStudiesModalOpen, setIsStudiesModalOpen] = useState(false);
+    const [showEncouragementModal, setShowEncouragementModal] = useState(false);
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(0);
     const [credit, setCredit] = useState(0);
@@ -92,8 +94,20 @@ const Hours = () => {
 
     const onDeleteReport = async () => {
         if (!selectedDay) return;
-        const res = await deleteReport(selectedDay);
-        if (res && !res.error) setIsModalOpen(false);
+        try {
+            await deleteReport(selectedDay);
+            setIsModalOpen(false);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to delete report');
+        }
+    };
+
+    const handleToggleReported = async () => {
+        await toggleReported();
+        if (!isReported) {
+            setShowEncouragementModal(true);
+        }
     };
 
     const totalHours = reports.reduce((acc, curr) => acc + curr.hours, 0);
@@ -128,6 +142,8 @@ const Hours = () => {
                 totalCredit={totalCredit} 
                 monthlyStudies={monthlyStudies} 
                 currentDate={currentDate}
+                scheduleToDate={scheduleToDate}
+                monthScheduleTotal={monthScheduleTotal}
             />
 
             <section className="bg-white rounded-[2.5rem] shadow-premium border border-nature-cream overflow-hidden">
@@ -192,7 +208,7 @@ const Hours = () => {
                 </button>
 
                 <button
-                    onClick={toggleReported}
+                    onClick={handleToggleReported}
                     disabled={statusLoading}
                     className={`flex-1 relative h-16 flex items-center justify-center gap-2 transition-all font-black uppercase tracking-[0.1em] text-[10px] shadow-xl overflow-hidden ${isReported ? 'bg-gradient-to-br from-emerald-400 to-nature-green text-white shadow-nature-green/30' : 'bg-white text-nature-brown border-2 border-nature-cream hover:bg-nature-cream/20'}`}
                     style={{ borderRadius: '2rem 1rem 2rem 0' }}
@@ -224,6 +240,15 @@ const Hours = () => {
                 isOpen={isStudiesModalOpen} onClose={() => setIsStudiesModalOpen(false)} currentDate={currentDate} 
                 studies={localStudies} setStudies={setLocalStudies} onSave={() => saveStudies(localStudies).then(() => setIsStudiesModalOpen(false))} 
                 loading={statusLoading} 
+            />
+
+            <ReportEncouragementModal
+                isOpen={showEncouragementModal}
+                onClose={() => setShowEncouragementModal(false)}
+                totalHours={totalHours}
+                dynamicGoal={dynamicGoal}
+                nextMonthGoal={nextMonthGoal}
+                currentDate={currentDate}
             />
         </div>
     );

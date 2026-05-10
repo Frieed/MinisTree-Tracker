@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isBefore } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useServiceYear } from '../context/ServiceYearContext';
@@ -228,6 +228,56 @@ export const useHoursData = (initialDate: Date) => {
 
 
 
+    const getScheduleToDate = () => {
+        const today = new Date();
+        const isCurrentMonth = isSameMonth(currentDate, today);
+        
+        // If viewing a future month
+        if (isBefore(today, startOfMonth(currentDate))) return 0;
+
+        const endDay = isCurrentMonth ? today : endOfMonth(currentDate);
+
+        return eachDayOfInterval({
+            start: startOfMonth(currentDate),
+            end: endDay
+        }).reduce((acc, day) => {
+            const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
+            const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+            const dayIdx = getDay(day);
+            const specific = dailySchedules.find(s => s.date === dateStr);
+            if (specific) return acc + (Number(specific.hours) || 0);
+            return acc + (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
+        }, 0);
+    };
+
+    const getMonthScheduleTotal = () => {
+        return eachDayOfInterval({
+            start: startOfMonth(currentDate),
+            end: endOfMonth(currentDate)
+        }).reduce((acc, day) => {
+            const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
+            const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+            const dayIdx = getDay(day);
+            const specific = dailySchedules.find(s => s.date === dateStr);
+            if (specific) return acc + (Number(specific.hours) || 0);
+            return acc + (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
+        }, 0);
+    };
+
+    const getNextMonthGoal = () => {
+        const totalHours = reports.reduce((acc, r) => acc + (Number(r.hours) || 0), 0);
+        const syMonths = ['September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August'];
+        const monthIdx = syMonths.indexOf(format(currentDate, 'MMMM'));
+        if (monthIdx === -1 || monthIdx === 11) return dynamicGoal; // No 'next month' in this SY if August
+        
+        const remainingYearHours = (dynamicGoal * (12 - monthIdx)) - totalHours;
+        const nextGoal = remainingYearHours / (11 - monthIdx);
+        return Number(Math.max(0, nextGoal).toFixed(1));
+    };
+
+    const scheduleToDate = getScheduleToDate();
+    const monthScheduleTotal = getMonthScheduleTotal();
+
     return {
         currentDate,
         setCurrentDate,
@@ -237,6 +287,9 @@ export const useHoursData = (initialDate: Date) => {
         dynamicGoal,
         plannedSchedule,
         dailySchedules,
+        scheduleToDate,
+        monthScheduleTotal,
+        nextMonthGoal: getNextMonthGoal(),
         loading,
         statusLoading,
         saveReport,

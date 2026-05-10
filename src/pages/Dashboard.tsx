@@ -17,6 +17,7 @@ const Dashboard = () => {
     progressPercentage,
     totalRemaining,
     hoursDifference,
+    reportedMonthsCount,
     avgHours,
     avgStudies,
 
@@ -31,6 +32,16 @@ const Dashboard = () => {
   const totalPlants = visits.length;
 
   const today = new Date();
+
+  const getProgressColor = (hours: number, goal: number) => {
+    if (goal <= 0) return 'text-nature-green-dark';
+    const percentage = (hours / goal) * 100;
+    if (percentage >= 90) return 'text-[#52b788]';
+    if (percentage >= 80) return 'text-lime-500';
+    if (percentage >= 70) return 'text-amber-500';
+    if (percentage >= 60) return 'text-orange-500';
+    return 'text-rose-500';
+  };
 
   return (
     <div className="px-6 pt-6 pb-2 space-y-8 min-h-screen">
@@ -137,24 +148,34 @@ const Dashboard = () => {
             </motion.div>
 
             <motion.div 
-              className="group relative bg-white/5 backdrop-blur-2xl rounded-[1.8rem] p-3 border border-white/10 border-l-[3px] border-l-yellow-400 shadow-xl overflow-hidden"
+              className={`group relative bg-white/5 backdrop-blur-2xl rounded-[1.8rem] p-3 border border-white/10 border-l-[3px] shadow-xl overflow-hidden ${hoursDifference <= 0 ? 'border-l-emerald-400' : 'border-l-yellow-400'}`}
             >
               {/* Faint Leaf Watermark */}
               <div className="absolute right-[-10%] bottom-[-10%] w-[80px] h-[80px] opacity-[0.05] pointer-events-none -rotate-12">
-                <Leaf className="w-full h-full fill-yellow-400" />
+                <Leaf className={`w-full h-full ${hoursDifference <= 0 ? 'fill-emerald-400' : 'fill-yellow-400'}`} />
               </div>
 
               <div className="flex items-start gap-2.5 relative z-10">
                 <div className="w-8 h-8 bg-black/20 rounded-full flex items-center justify-center border border-white/5 shadow-inner">
-                  <Hourglass size={14} className="text-yellow-400" />
+                  {hoursDifference <= 0 ? (
+                    <CheckCircle2 size={14} className="text-emerald-400" />
+                  ) : (
+                    <Hourglass size={14} className="text-yellow-400" />
+                  )}
                 </div>
                 <div className="flex-1 space-y-0">
-                  <p className="text-[8px] uppercase font-black text-[#d9ed92] tracking-widest opacity-70">Behind</p>
+                  <p className={`text-[8px] uppercase font-black tracking-widest opacity-70 ${hoursDifference <= 0 ? 'text-emerald-400' : 'text-[#d9ed92]'}`}>
+                    {hoursDifference <= 0 ? (hoursDifference === 0 ? 'On Track' : 'Ahead') : 'Behind'}
+                  </p>
                   <h4 className="text-2xl font-black tracking-tighter text-white leading-none">
                     <CountUp value={Math.abs(hoursDifference)} decimals={1} /> <span className="text-[10px] opacity-30 font-bold">hrs</span>
                   </h4>
                   <div className="pt-1.5">
-                    <p className="text-[8px] font-bold text-white/40 leading-tight">Keep going!</p>
+                    <p className="text-[8px] font-bold text-white/40 leading-tight">
+                      {hoursDifference <= 0 ? 'Excellent work!' : 'Keep going!'}
+                      <br />
+                      <span className="opacity-60">for {reportedMonthsCount} {reportedMonthsCount === 1 ? 'month' : 'months'}</span>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -201,7 +222,11 @@ const Dashboard = () => {
                       <td className="py-2 px-3 text-xs font-bold text-nature-brown text-center">{!isFuture ? (data?.credit || 0) : '-'}</td>
                       <td className="py-2 px-3 text-xs font-bold text-nature-brown text-center">{projectedSchedule > 0 ? projectedSchedule.toFixed(1) : '-'}</td>
                       <td className="py-2 px-3 text-xs font-bold text-black text-center">{!isFuture || isNow ? monthGoal.toFixed(1) : '-'}</td>
-                      <td className={`py-2 px-3 text-xs font-black text-center ${!isFuture && !reachedGoal ? 'text-rose-500' : (!isFuture && reachedGoal ? 'text-emerald-500' : 'text-nature-green-dark')}`}>
+                      <td className={`py-2 px-3 text-xs font-black text-center ${
+                        !isFuture 
+                          ? getProgressColor(data?.hours || 0, monthGoal)
+                          : 'text-nature-green-dark'
+                      }`}>
                         {!isFuture ? (data?.hours || 0).toFixed(1) : '-'}
                       </td>
                       <td className="py-2 px-3 text-xs font-bold text-center">

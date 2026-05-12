@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldAlert, Zap, Droplets, Trash2 } from 'lucide-react';
 
@@ -8,10 +9,12 @@ interface HealthMaintenanceModalProps {
 }
 
 export const HealthMaintenanceModal: React.FC<HealthMaintenanceModalProps> = ({ isOpen, onClose }) => {
-    return (
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-nature-brown/20 backdrop-blur-md">
+                <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-nature-brown/20 backdrop-blur-md">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -83,6 +86,7 @@ export const HealthMaintenanceModal: React.FC<HealthMaintenanceModalProps> = ({ 
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };

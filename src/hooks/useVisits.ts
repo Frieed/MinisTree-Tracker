@@ -156,10 +156,39 @@ export const useVisits = () => {
             const { error: logError } = await supabase.from('visit_logs').insert({ visit_id: visitId, ...logData });
             if (logError) throw logError;
 
+            // Log Cleanup Logic: Keep only 3 successful and 3 attempts
+            const { data: allLogs } = await supabase
+                .from('visit_logs')
+                .select('id, is_attempt')
+                .eq('visit_id', visitId)
+                .order('visit_date', { ascending: false })
+                .order('created_at', { ascending: false });
+
+            if (allLogs) {
+                const successful = allLogs.filter(l => !l.is_attempt);
+                const attempts = allLogs.filter(l => l.is_attempt);
+
+                // If the new visit was successful, delete ALL previous attempts
+                if (!logData.is_attempt && attempts.length > 0) {
+                    const toDeleteAttempts = attempts.map(l => l.id);
+                    await supabase.from('visit_logs').delete().in('id', toDeleteAttempts);
+                } else if (attempts.length > 3) {
+                    // Otherwise keep only the last 3 attempts
+                    const toDelete = attempts.slice(3).map(l => l.id);
+                    await supabase.from('visit_logs').delete().in('id', toDelete);
+                }
+
+                // Always keep only the last 3 successful visits
+                if (successful.length > 3) {
+                    const toDelete = successful.slice(3).map(l => l.id);
+                    await supabase.from('visit_logs').delete().in('id', toDelete);
+                }
+            }
+
             const result = await supabase.from('return_visits').update(latestUpdate).eq('id', visitId).eq('user_id', user.id);
             if (result.error) throw result.error;
 
-            // We don't need a full refetch here if we update cache manually
+            // Update cache
             const cacheKey = `visits_${user.id}`;
             const cachedVisits = await offlineStore.getItem<any[]>(cacheKey) || [];
             await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));

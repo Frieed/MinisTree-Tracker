@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart, AlertCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { createPortal } from 'react-dom';
 
@@ -63,13 +63,13 @@ export const VisitDetailsModal = ({
                             </div>
 
                             {/* Overall Remarks */}
-                            {visit.notes && (
+                            {visit.remarks && (
                                 <div className="bg-white p-4 rounded-[2rem] border border-nature-cream shadow-sm">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="p-1.5 bg-nature-brown/5 text-nature-brown rounded-lg"><FileText size={14} /></div>
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light">Remarks</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light">Description / Remarks</h4>
                                     </div>
-                                    <p className="text-sm font-medium text-nature-brown-dark whitespace-pre-wrap">{visit.notes}</p>
+                                    <p className="text-sm font-medium text-nature-brown-dark whitespace-pre-wrap">{visit.remarks}</p>
                                 </div>
                             )}
 
@@ -113,9 +113,21 @@ export const VisitDetailsModal = ({
                                                 </div>
                                                 <button onClick={() => onDeleteLog(log.id)} className="p-2 text-nature-brown-light hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
                                             </div>
-                                            <div className="grid grid-cols-1 gap-3">
-                                                {log.literature && <div className="flex items-start gap-2"><BookOpen size={12} className="text-nature-green mt-0.5" /><p className="text-xs text-nature-brown"><span className="font-bold">Placed:</span> {log.literature}</p></div>}
-                                                {log.questions && <div className="flex items-start gap-2"><HelpCircle size={12} className="text-water-blue mt-0.5" /><p className="text-xs text-nature-brown"><span className="font-bold">Next:</span> {log.questions}</p></div>}
+                                            <div className={`grid grid-cols-1 gap-3 ${log.is_attempt ? 'opacity-80' : ''}`}>
+                                                {log.is_attempt ? (
+                                                    <div className="flex items-start gap-2 bg-amber-50/50 p-2 rounded-xl border border-amber-100">
+                                                        <AlertCircle size={12} className="text-amber-500 mt-0.5 shrink-0" />
+                                                        <div className="space-y-0.5">
+                                                            <p className="text-[10px] font-black uppercase text-amber-600 tracking-tight">Failed Attempt</p>
+                                                            <p className="text-xs text-nature-brown font-medium leading-tight">{log.attempt_reason || 'No reason provided'}</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {log.literature && <div className="flex items-start gap-2"><BookOpen size={12} className="text-nature-green mt-0.5" /><p className="text-xs text-nature-brown"><span className="font-bold">Placed:</span> {log.literature}</p></div>}
+                                                        {log.questions && <div className="flex items-start gap-2"><HelpCircle size={12} className="text-water-blue mt-0.5" /><p className="text-xs text-nature-brown"><span className="font-bold">Next:</span> {log.questions}</p></div>}
+                                                    </>
+                                                )}
                                                 {log.notes && <div className="flex items-start gap-2"><FileText size={12} className="text-nature-brown-light mt-0.5" /><p className="text-xs text-nature-brown-light italic">"{log.notes}"</p></div>}
                                             </div>
                                         </div>

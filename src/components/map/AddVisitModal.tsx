@@ -18,6 +18,8 @@ interface AddVisitModalProps {
     setAddress: (a: string) => void;
     gender: string;
     setGender: (g: string) => void;
+    remarks: string;
+    setRemarks: (r: string) => void;
     day: string;
     setDay: (d: string) => void;
     time: string;
@@ -66,7 +68,7 @@ const ModalMap = ({ position, setPosition }: { position: [number, number] | null
 
 export const AddVisitModal = ({
     isOpen, onClose, step, setStep, editing,
-    name, setName, address, setAddress, gender, setGender,
+    name, setName, address, setAddress, gender, setGender, remarks, setRemarks,
     day, setDay, time, setTime, literature, setLiterature, questions, setQuestions, notes, setNotes, position, setPosition, userPosition,
     onSave, saving
 }: AddVisitModalProps) => {
@@ -114,6 +116,10 @@ export const AddVisitModal = ({
                                             ))}
                                         </div>
                                     </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><User size={12} /> Remarks (Appearance/Description)</label>
+                                        <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all h-20" placeholder="E.g. Tall, wears glasses, friendly..." />
+                                    </div>
                                     {!editing && (
                                         <>
                                             <div className="space-y-1.5">
@@ -125,8 +131,8 @@ export const AddVisitModal = ({
                                                 <input type="text" value={questions} onChange={(e) => setQuestions(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all" placeholder="E.g. Why does God allow suffering?" />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> DETAILED REMARKS</label>
-                                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all h-24" placeholder="Mention special requests or interesting points..." />
+                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-nature-brown-light flex items-center gap-2"><FileText size={12} /> VISIT NOTES</label>
+                                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-nature-cream/50 border-2 border-nature-cream px-4 py-3 rounded-2xl font-bold text-nature-brown-dark outline-none focus:border-nature-green transition-all h-24" placeholder="Mention special requests or interesting points from the conversation..." />
                                             </div>
                                         </>
                                     )}

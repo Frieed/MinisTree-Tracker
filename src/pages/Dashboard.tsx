@@ -165,7 +165,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-1 space-y-0">
                   <p className={`text-[8px] uppercase font-black tracking-widest opacity-70 ${hoursDifference <= 0 ? 'text-emerald-400' : 'text-[#d9ed92]'}`}>
-                    {hoursDifference <= 0 ? (hoursDifference === 0 ? 'On Track' : 'Ahead') : 'Behind'}
+                    {hoursDifference <= 0 ? (hoursDifference === 0 ? 'On Track' : 'Ahead') : 'Behind'} <span className="normal-case">({reportedMonthsCount} mos)</span>
                   </p>
                   <h4 className="text-2xl font-black tracking-tighter text-white leading-none">
                     <CountUp value={Math.abs(hoursDifference)} decimals={1} /> <span className="text-[10px] opacity-30 font-bold">hrs</span>
@@ -173,8 +173,6 @@ const Dashboard = () => {
                   <div className="pt-1.5">
                     <p className="text-[8px] font-bold text-white/40 leading-tight">
                       {hoursDifference <= 0 ? 'Excellent work!' : 'Keep going!'}
-                      <br />
-                      <span className="opacity-60">for {reportedMonthsCount} {reportedMonthsCount === 1 ? 'month' : 'months'}</span>
                     </p>
                   </div>
                 </div>

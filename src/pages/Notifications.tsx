@@ -10,7 +10,7 @@ import { type Notification } from '../hooks/useNotifications';
 
 const Notifications = () => {
     const navigate = useNavigate();
-    const { notifications, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+    const { notifications, loading, markAsRead, markAllAsRead, deleteNotification, respondToHandover } = useNotifications();
     const [showClearModal, setShowClearModal] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
@@ -153,6 +153,7 @@ const Notifications = () => {
                 notification={selectedNotification}
                 onClose={() => setSelectedNotification(null)}
                 onDelete={deleteNotification}
+                onRespond={respondToHandover}
             />
         </div>
     );

@@ -300,6 +300,77 @@ export const useVisits = () => {
         performCleanup();
     }, [user, fetchVisits]);
 
+    const initiateHandover = async (visitId: string, recipientEmail: string) => {
+        if (!user) return { error: 'Not authenticated' };
+        
+        try {
+            // 1. Find recipient ID by email
+            const { data: recipient, error: searchError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', recipientEmail.toLowerCase().trim())
+                .single();
+
+            if (searchError || !recipient) {
+                return { error: 'User not found. Please check the email address.' };
+            }
+
+            if (recipient.id === user.id) {
+                return { error: 'You cannot share a visit with yourself!' };
+            }
+
+            // 2. Create transfer record
+            const { data: transfer, error: transferError } = await supabase
+                .from('visit_transfers')
+                .insert({
+                    visit_id: visitId,
+                    from_user_id: user.id,
+                    to_user_id: recipient.id,
+                    status: 'pending'
+                })
+                .select()
+                .single();
+
+            if (transferError) throw transferError;
+
+            // 3. Create notification for recipient
+            const { data: visit } = await supabase
+                .from('return_visits')
+                .select('*')
+                .eq('id', visitId)
+                .single();
+
+            await supabase.from('notifications').insert({
+                user_id: recipient.id,
+                title: 'Handover Request 🤝',
+                message: `${user.email} wants to hand over their return visit with ${visit?.name || 'someone'} to you.`,
+                type: 'info',
+                payload: { 
+                    transfer_id: transfer.id, 
+                    type: 'handover_request',
+                    visit_details: {
+                        name: visit?.name,
+                        address: visit?.address,
+                        remarks: visit?.remarks,
+                        gender: visit?.gender,
+                        is_bible_study: visit?.is_bible_study
+                    }
+                }
+            });
+
+            return { success: true };
+        } catch (err: any) {
+            console.error('Handover error:', err);
+            return { error: err.message };
+        }
+    };
+
+    useEffect(() => {
+        const handleRefresh = () => fetchVisits();
+        window.addEventListener('refresh-visits', handleRefresh);
+        return () => window.removeEventListener('refresh-visits', handleRefresh);
+    }, [fetchVisits]);
+
     useEffect(() => {
         fetchVisits();
     }, [fetchVisits]);
@@ -315,6 +386,7 @@ export const useVisits = () => {
         deleteVisit,
         waterVisit,
         toggleBibleStudy,
-        deleteLog
+        deleteLog,
+        initiateHandover
     };
 };

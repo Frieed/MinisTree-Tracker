@@ -7,8 +7,9 @@ interface NotificationsContextType {
     markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     deleteNotification: (id: string) => Promise<void>;
-    createNotification: (title: string, message: string, type: 'info' | 'warning' | 'success') => Promise<void>;
+    createNotification: (title: string, message: string, type?: 'info' | 'warning' | 'success', targetUserId?: string) => Promise<void>;
     checkAndGenerateNotifications: (visits: any[], stageIdx: number) => Promise<void>;
+    respondToHandover: (notificationId: string, transferId: string, accept: boolean) => Promise<any>;
     refresh: () => Promise<void>;
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, ShieldAlert, CheckCircle2, Trophy, Clock, Trash2 } from 'lucide-react';
+import { X, Bell, ShieldAlert, CheckCircle2, Trophy, Clock, Trash2, MapPin, FileText, Loader2 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { type Notification } from '../../hooks/useNotifications';
@@ -10,12 +10,32 @@ interface NotificationDetailModalProps {
     notification: Notification | null;
     onClose: () => void;
     onDelete: (id: string) => void;
+    onRespond?: (notificationId: string, transferId: string, accept: boolean) => Promise<any>;
 }
 
 export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({ 
-    notification, onClose, onDelete 
+    notification, onClose, onDelete, onRespond
 }) => {
+    const [isResponding, setIsResponding] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+
     if (!notification) return null;
+
+    const handleResponse = async (accept: boolean) => {
+        if (!onRespond || !notification.payload?.transfer_id) return;
+        
+        setIsResponding(true);
+        setError(null);
+        
+        const result = await onRespond(notification.id, notification.payload.transfer_id, accept);
+        
+        if (result?.error) {
+            setError(result.error);
+            setIsResponding(false);
+        } else {
+            onClose();
+        }
+    };
 
     const getIcon = () => {
         if (notification.type === 'warning') return <ShieldAlert size={40} />;
@@ -87,6 +107,47 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                                     {notification.message}
                                 </p>
 
+                                {notification.payload?.visit_details && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mt-4 p-5 bg-white border border-nature-cream rounded-[2rem] shadow-sm text-left space-y-3"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border shadow-inner ${
+                                                    notification.payload.visit_details.is_bible_study ? 'bg-[#e8f5f1] border-[#c2e5db]' : 'bg-[#ebf3fe] border-[#d4e4f9]'
+                                                }`}>
+                                                    <span className="text-xl">
+                                                        {notification.payload.visit_details.is_bible_study ? '🌳' : '🌱'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-black text-nature-brown-dark leading-tight">{notification.payload.visit_details.name}</p>
+                                                    <p className="text-[9px] font-black text-nature-brown-light uppercase tracking-widest">{notification.payload.visit_details.gender}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 border-t border-nature-cream/50 pt-2">
+                                            <div className="flex items-start gap-2">
+                                                <MapPin size={12} className="text-nature-green mt-0.5 shrink-0" />
+                                                <p className="text-[11px] text-nature-brown font-medium leading-tight italic">
+                                                    {notification.payload.visit_details.address || 'No address provided'}
+                                                </p>
+                                            </div>
+                                            {notification.payload.visit_details.remarks && (
+                                                <div className="flex items-start gap-2">
+                                                    <FileText size={12} className="text-nature-brown-light mt-0.5 shrink-0" />
+                                                    <p className="text-[11px] text-nature-brown-light leading-snug line-clamp-2">
+                                                        {notification.payload.visit_details.remarks}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+
                                 {nextStage && (
                                     <motion.div 
                                         initial={{ opacity: 0, y: 10 }}
@@ -113,23 +174,53 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                             </div>
 
                             <div className="flex gap-3 pt-4">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDelete(notification.id);
-                                        onClose();
-                                    }}
-                                    className="w-14 h-14 bg-white text-rose-300 hover:text-rose-500 rounded-2xl flex items-center justify-center border border-nature-cream transition-colors"
-                                    title="Delete"
-                                >
-                                    <Trash2 size={20} />
-                                </button>
-                                <button
-                                    onClick={onClose}
-                                    className="flex-1 h-14 bg-nature-green text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-nature-green/30 hover:bg-nature-green-dark transition-all active:scale-95"
-                                >
-                                    Close Message
-                                </button>
+                                {notification.payload?.type === 'handover_request' ? (
+                                    <div className="flex flex-col gap-3 w-full">
+                                        <div className="flex gap-3">
+                                            <button
+                                                disabled={isResponding}
+                                                onClick={() => handleResponse(false)}
+                                                className="flex-1 h-14 bg-white text-rose-500 font-black uppercase tracking-widest text-[10px] rounded-2xl border border-rose-100 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                <X size={14} />
+                                                Reject
+                                            </button>
+                                            <button
+                                                disabled={isResponding}
+                                                onClick={() => handleResponse(true)}
+                                                className="flex-1 h-14 bg-nature-green text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-nature-green/30 hover:bg-nature-green-dark transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                {isResponding ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                                                Accept
+                                            </button>
+                                        </div>
+                                        {error && (
+                                            <p className="text-[10px] font-bold text-rose-500 text-center animate-pulse">
+                                                {error}
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDelete(notification.id);
+                                                onClose();
+                                            }}
+                                            className="w-14 h-14 bg-white text-rose-300 hover:text-rose-500 rounded-2xl flex items-center justify-center border border-nature-cream transition-colors"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={20} />
+                                        </button>
+                                        <button
+                                            onClick={onClose}
+                                            className="flex-1 h-14 bg-nature-green text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-nature-green/30 hover:bg-nature-green-dark transition-all active:scale-95"
+                                        >
+                                            Close Message
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
 

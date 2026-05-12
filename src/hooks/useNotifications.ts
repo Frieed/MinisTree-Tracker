@@ -11,6 +11,7 @@ export interface Notification {
     type: 'info' | 'warning' | 'success';
     is_read: boolean;
     created_at: string;
+    payload?: any;
 }
 
 export const useNotificationsData = () => {
@@ -78,15 +79,21 @@ export const useNotificationsData = () => {
         }
     };
 
-    const createNotification = async (title: string, message: string, type: 'info' | 'warning' | 'success') => {
-        if (!user) {
+    const createNotification = async (
+        title: string, 
+        message: string, 
+        type: 'info' | 'warning' | 'success' = 'info',
+        targetUserId?: string
+    ) => {
+        const userId = targetUserId || user?.id;
+        if (!userId) {
             console.warn('[Notifications] No user found, cannot create notification');
             return;
         }
         try {
             const { error } = await supabase
                 .from('notifications')
-                .insert({ user_id: user.id, title, message, type });
+                .insert({ user_id: userId, title, message, type });
             if (error) throw error;
             await fetchNotifications();
         } catch (err) {
@@ -190,6 +197,57 @@ export const useNotificationsData = () => {
         }
     }, [user, loading, notifications]);
 
+    const respondToHandover = async (notificationId: string, transferId: string, accept: boolean) => {
+        if (!user) return;
+        
+        try {
+            // 1. Get transfer details
+            const { data: transfer, error: fetchError } = await supabase
+                .from('visit_transfers')
+                .select('*, return_visits(name)')
+                .eq('id', transferId)
+                .single();
+
+            if (fetchError || !transfer) throw new Error('Transfer request not found.');
+
+            if (accept) {
+                // 2. Use secure RPC function to transfer ownership (bypasses RLS safely)
+                const { data: rpcResult, error: rpcError } = await supabase
+                    .rpc('accept_visit_handover', { p_transfer_id: transferId });
+
+                if (rpcError) throw rpcError;
+                if (rpcResult?.error) throw new Error(rpcResult.error);
+
+                // 3. Notify the sender of success
+                await createNotification(
+                    'Handover Accepted! ✅',
+                    `${user.email} accepted your handover for ${transfer.return_visits?.name || 'a visit'}. It has been moved to their garden.`,
+                    'success',
+                    transfer.from_user_id
+                );
+
+                // 4. Trigger global refresh for the garden
+                window.dispatchEvent(new CustomEvent('refresh-visits'));
+            } else {
+                // Notify the sender of rejection
+                await createNotification(
+                    'Handover Declined ❌',
+                    `${user.email} declined your handover request for ${transfer.return_visits?.name || 'a visit'}.`,
+                    'info',
+                    transfer.from_user_id
+                );
+            }
+
+            // 5. Clean up: notification only (transfer record deleted by RPC on accept)
+            await deleteNotification(notificationId);
+            
+            return { success: true };
+        } catch (err: any) {
+            console.error('Response error:', err);
+            return { error: err.message };
+        }
+    };
+
     useEffect(() => {
         fetchNotifications();
     }, [fetchNotifications]);
@@ -202,6 +260,7 @@ export const useNotificationsData = () => {
         deleteNotification,
         createNotification,
         checkAndGenerateNotifications,
+        respondToHandover,
         refresh: fetchNotifications
     };
 };

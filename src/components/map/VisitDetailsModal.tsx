@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart, AlertCircle, AlertTriangle, Info, UserPlus } from 'lucide-react';
 import { HealthMaintenanceModal } from './HealthMaintenanceModal';
 import { format, parseISO } from 'date-fns';
 import { createPortal } from 'react-dom';
@@ -17,12 +17,14 @@ interface VisitDetailsModalProps {
     onWater: () => void;
     onToggleStudy: () => void;
     onDeleteLog: (logId: string) => void;
+    onHandover: () => void;
 }
 
 export const VisitDetailsModal = ({
-    isOpen, onClose, visit, logs, loadingLogs, onEdit, onDelete, onWater, onToggleStudy, onDeleteLog
+    isOpen, onClose, visit, logs, loadingLogs, onEdit, onDelete, onWater, onToggleStudy, onDeleteLog, onHandover
 }: VisitDetailsModalProps) => {
     const [showMaintenanceInfo, setShowMaintenanceInfo] = React.useState(false);
+
     if (typeof document === 'undefined') return null;
 
     return createPortal(
@@ -59,11 +61,19 @@ export const VisitDetailsModal = ({
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
+                                    <button 
+                                        onClick={onHandover} 
+                                        className="p-3 bg-white border border-nature-cream text-nature-brown-light rounded-2xl hover:text-nature-green hover:border-nature-green transition-all shadow-sm"
+                                        title="Handover Visit"
+                                    >
+                                        <UserPlus size={18} />
+                                    </button>
                                     <button onClick={onEdit} className="p-3 bg-white border border-nature-cream rounded-2xl text-nature-brown-light hover:text-nature-green transition-all shadow-sm"><Edit3 size={18} /></button>
                                     <button onClick={onDelete} className="p-3 bg-white border border-nature-cream rounded-2xl text-nature-brown-light hover:text-rose-500 transition-all shadow-sm"><Trash2 size={18} /></button>
                                     <button onClick={onClose} className="p-3 bg-nature-cream rounded-2xl text-nature-brown transition-all"><X size={18} /></button>
                                 </div>
                             </div>
+
 
                             {/* Drying Warning */}
                             {(() => {

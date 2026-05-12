@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +13,7 @@ import { VisitDetailsModal } from '../components/map/VisitDetailsModal';
 import { WateringModal } from '../components/map/WateringModal';
 import { DeleteConfirmationModal } from '../components/map/DeleteConfirmationModal';
 import { DeleteLogConfirmationModal } from '../components/map/DeleteLogConfirmationModal';
+import { HandoverModal } from '../components/map/HandoverModal';
 import { useUI } from '../context/UIContext';
 
 interface Visit {
@@ -53,7 +55,7 @@ const VisitsMap = () => {
     const monthName = today.toLocaleString('default', { month: 'long' });
     const {
         visits, loading, visitLogs, loadingLogs, fetchVisitLogs,
-        saveVisit, deleteVisit, waterVisit, toggleBibleStudy, deleteLog
+        saveVisit, deleteVisit, waterVisit, toggleBibleStudy, deleteLog, initiateHandover
     } = useVisits();
 
     const [showAdd, setShowAdd] = useState(false);
@@ -90,6 +92,7 @@ const VisitsMap = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteLogConfirm, setShowDeleteLogConfirm] = useState(false);
     const [logToDelete, setLogToDelete] = useState<{id: string, date: string} | null>(null);
+    const [showHandover, setShowHandover] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('All');
     const [typeFilter, setTypeFilter] = useState<string>('All');
     const [genderFilter, setGenderFilter] = useState<string>('All');
@@ -269,7 +272,7 @@ const VisitsMap = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-nature-brown-light" size={18} />
                         <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border-2 border-nature-cream-light rounded-2xl py-4 pl-12 pr-4 shadow-soft outline-none font-medium text-sm" />
                     </div>
-                    <button onClick={() => { setEditingVisit(null); setFormStep(0); setShowAdd(true); setActiveTab('map'); }} className="min-w-[64px] px-2 h-[58px] bg-nature-green text-white rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0">
+                    <button onClick={() => { setEditingVisit(null); setFormStep(0); setShowAdd(true); }} className="min-w-[64px] px-2 h-[58px] bg-nature-green text-white rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0">
                         <Sprout size={20} className="mb-0.5" />
                         <span className="text-[8px] font-black uppercase tracking-widest">Add/Plant</span>
                     </button>
@@ -490,7 +493,7 @@ const VisitsMap = () => {
 
             <VisitDetailsModal
                 isOpen={showDetails} onClose={() => setShowDetails(false)} visit={editingVisit} logs={visitLogs} loadingLogs={loadingLogs}
-                onEdit={() => { setShowDetails(false); setFormStep(0); setShowAdd(true); setActiveTab('map'); }}
+                onEdit={() => { setShowDetails(false); setFormStep(0); setShowAdd(true); }}
                 onDelete={() => setShowDeleteConfirm(true)}
                 onWater={() => { setShowDetails(false); setWaterGiven(''); setWaterQuestions(''); setWaterNotes(''); setShowWater(true); }}
                 onToggleStudy={async () => {
@@ -504,6 +507,7 @@ const VisitsMap = () => {
                         setShowDeleteLogConfirm(true);
                     }
                 }}
+                onHandover={() => setShowHandover(true)}
             />
 
             <WateringModal
@@ -544,25 +548,35 @@ const VisitsMap = () => {
                 logDate={logToDelete?.date || new Date().toISOString()}
             />
 
-            <AnimatePresence>
-                {noLocationVisit && (
-                    <div className="fixed inset-0 z-[3000] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setNoLocationVisit(null)} className="absolute inset-0 bg-nature-brown-dark/20 backdrop-blur-sm" />
-                        <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-8 shadow-2xl border-2 border-nature-cream text-center space-y-6">
-                            <div className="w-20 h-20 bg-nature-cream rounded-[2rem] flex items-center justify-center mx-auto text-nature-brown-light">
-                                <MapPinOff size={40} />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-black text-nature-brown-dark uppercase tracking-tight">Location Not Set</h3>
-                                <p className="text-nature-brown text-sm font-medium leading-relaxed px-2">
-                                    No location has been pinpointed for <span className="font-black text-nature-green">{noLocationVisit.name}</span>. You can add coordinates by updating this visit's information.
-                                </p>
-                            </div>
-                            <button onClick={() => setNoLocationVisit(null)} className="w-full h-14 bg-nature-green text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-nature-green/20 hover:scale-[1.02] active:scale-95 transition-all">Understood</button>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            <HandoverModal
+                isOpen={showHandover}
+                onClose={() => setShowHandover(false)}
+                visit={editingVisit}
+                onHandover={(email) => initiateHandover(editingVisit?.id, email)}
+            />
+
+            {createPortal(
+                <AnimatePresence>
+                    {noLocationVisit && (
+                        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-6">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setNoLocationVisit(null)} className="absolute inset-0 bg-nature-brown-dark/20 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-8 shadow-2xl border-2 border-nature-cream text-center space-y-6">
+                                <div className="w-20 h-20 bg-nature-cream rounded-[2rem] flex items-center justify-center mx-auto text-nature-brown-light">
+                                    <MapPinOff size={40} />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-black text-nature-brown-dark uppercase tracking-tight">Location Not Set</h3>
+                                    <p className="text-nature-brown text-sm font-medium leading-relaxed px-2">
+                                        No location has been pinpointed for <span className="font-black text-nature-green">{noLocationVisit.name}</span>. You can add coordinates by updating this visit's information.
+                                    </p>
+                                </div>
+                                <button onClick={() => setNoLocationVisit(null)} className="w-full h-14 bg-nature-green text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-nature-green/20 hover:scale-[1.02] active:scale-95 transition-all">Understood</button>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };

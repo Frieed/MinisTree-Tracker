@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { useTreeGrowth } from '../hooks/useTreeGrowth';
 import { TreeEvolutionDisplay } from '../components/tree/TreeEvolutionDisplay';
 import { GrowthMilestonesGallery } from '../components/tree/GrowthMilestonesGallery';
-import { useUI } from '../context/UIContext';
 
 const TreePet = () => {
   const {

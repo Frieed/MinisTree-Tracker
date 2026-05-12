@@ -1,5 +1,7 @@
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart, AlertCircle } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, Edit3, Trash2, Droplets, BookOpen, HelpCircle, FileText, Loader2, Heart, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { HealthMaintenanceModal } from './HealthMaintenanceModal';
 import { format, parseISO } from 'date-fns';
 import { createPortal } from 'react-dom';
 
@@ -20,6 +22,7 @@ interface VisitDetailsModalProps {
 export const VisitDetailsModal = ({
     isOpen, onClose, visit, logs, loadingLogs, onEdit, onDelete, onWater, onToggleStudy, onDeleteLog
 }: VisitDetailsModalProps) => {
+    const [showMaintenanceInfo, setShowMaintenanceInfo] = React.useState(false);
     if (typeof document === 'undefined') return null;
 
     return createPortal(
@@ -61,6 +64,49 @@ export const VisitDetailsModal = ({
                                     <button onClick={onClose} className="p-3 bg-nature-cream rounded-2xl text-nature-brown transition-all"><X size={18} /></button>
                                 </div>
                             </div>
+
+                            {/* Drying Warning */}
+                            {(() => {
+                                // Priority: Latest log date > last_visit_date field > created_at
+                                const latestLogDate = logs && logs.length > 0 ? logs[0].visit_date : null;
+                                const lastDate = latestLogDate || visit.last_visit_date || visit.created_at;
+                                
+                                if (!lastDate) return null;
+                                const diff = new Date().getTime() - new Date(lastDate).getTime();
+                                const weeksPassed = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+                                if (weeksPassed < 4) return null; // 4 weeks = approx 1 month
+                                const weeksRemaining = 12 - weeksPassed;
+                                
+                                return (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="bg-amber-50 border-2 border-amber-100 p-4 rounded-[2rem] flex items-center gap-4 shadow-sm relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-amber-500/5 rounded-full" />
+                                        <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/20 z-10">
+                                            <AlertTriangle size={24} />
+                                        </div>
+                                        <div className="flex-1 min-w-0 z-10">
+                                            <h4 className="text-xs font-black text-amber-700 uppercase tracking-wider">Plant is Drying Out!</h4>
+                                            <p className="text-[10px] font-bold text-amber-600 leading-tight">
+                                                Must be visited soon. {weeksRemaining > 0 ? `About ${weeksRemaining} weeks left` : 'Final week'} before this person is permanently removed from your garden.
+                                            </p>
+                                        </div>
+                                        <button 
+                                            onClick={() => setShowMaintenanceInfo(true)}
+                                            className="w-10 h-10 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center hover:bg-amber-500/20 transition-all shrink-0 z-10"
+                                        >
+                                            <Info size={20} />
+                                        </button>
+                                    </motion.div>
+                                );
+                            })()}
+
+                            <HealthMaintenanceModal 
+                                isOpen={showMaintenanceInfo} 
+                                onClose={() => setShowMaintenanceInfo(false)} 
+                            />
 
                             {/* Overall Remarks */}
                             {visit.remarks && (

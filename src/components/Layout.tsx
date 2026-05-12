@@ -1,16 +1,25 @@
 import { useState, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Clock, MapPin, Leaf, CalendarDays, TreePine, Settings } from 'lucide-react';
+import { LayoutDashboard, Clock, MapPin, Leaf, CalendarDays, TreePine, Settings, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUI } from '../context/UIContext';
 import { UnsavedChangesModal } from './common/UnsavedChangesModal';
+import { SystemNotificationsManager } from './common/SystemNotificationsManager';
+import { LevelUpModal } from './tree/LevelUpModal';
+import { useTreeGrowth } from '../hooks/useTreeGrowth';
+import { useNotifications } from '../context/NotificationsContext';
 
 const Layout = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const { notifications } = useNotifications();
+  const hasUnread = notifications.some(n => !n.is_read);
   const { isModalOpen } = useUI();
   const lastScrollY = useRef(0);
   const location = useLocation();
   const navigate = useNavigate();
+  const { 
+    showLevelUp, dismissLevelUp, stageIndex, currentStage 
+  } = useTreeGrowth();
 
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingTo, setPendingTo] = useState<string | null>(null);
@@ -34,6 +43,7 @@ const Layout = () => {
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] bg-nature-cream flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden">
+      <SystemNotificationsManager />
       {/* Header / Brand */}
       <header className={`absolute top-0 w-full z-[50] p-6 pb-2 bg-nature-cream/95 backdrop-blur-xl flex items-center justify-between transition-transform duration-500 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="flex items-center gap-2">
@@ -43,6 +53,12 @@ const Layout = () => {
           <h1 className="text-xl font-bold text-nature-brown-dark tracking-tight">MinisTree</h1>
         </div>
         <div className="flex items-center gap-2">
+          <Link to="/notifications" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-nature-brown hover:text-nature-green transition-colors relative">
+            <Bell size={20} />
+            {hasUnread && (
+              <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+            )}
+          </Link>
           <Link to="/settings" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-nature-brown hover:text-nature-green transition-colors">
             <Settings size={20} />
           </Link>
@@ -81,6 +97,13 @@ const Layout = () => {
         isOpen={showUnsavedModal}
         onClose={() => setShowUnsavedModal(false)}
         onConfirm={handleConfirmLeave}
+      />
+
+      <LevelUpModal 
+        show={showLevelUp} 
+        onClose={dismissLevelUp} 
+        stageIndex={stageIndex} 
+        message={currentStage?.message || ''} 
       />
     </div>
   );

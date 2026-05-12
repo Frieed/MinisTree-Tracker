@@ -16,7 +16,8 @@ export const useTreeGrowth = () => {
     });
 
     const [loading, setLoading] = useState(() => !localStorage.getItem(cacheKey));
-    const [showLevelUp, setShowLevelUp] = useState(false);
+    const unseenKey = `minisTree_unseenEvolution_${user?.id}`;
+    const [showLevelUp, setShowLevelUp] = useState(() => localStorage.getItem(unseenKey) === 'true');
 
     useEffect(() => {
         if (!user) return;
@@ -38,13 +39,19 @@ export const useTreeGrowth = () => {
                     const currentStageIdx = TREE_STAGES.findLastIndex(s => total >= s.minHours);
                     const storageKey = `minisTree_highestStage_${user.id}`;
                     const savedHighestStage = localStorage.getItem(storageKey);
-                    const highestSeen = savedHighestStage ? parseInt(savedHighestStage, 10) : 0;
+                    const lastKnownStage = savedHighestStage ? parseInt(savedHighestStage, 10) : 0;
 
-                    if (currentStageIdx > highestSeen) {
+                    // Trigger Modal if we just climbed to a NEW higher stage
+                    if (currentStageIdx > lastKnownStage) {
                         setShowLevelUp(true);
+                        localStorage.setItem(unseenKey, 'true');
+                    } 
+                    // Quietly update the record if we went DOWN (so we can level up again later)
+                    else if (currentStageIdx < lastKnownStage) {
                         localStorage.setItem(storageKey, currentStageIdx.toString());
-                        localStorage.setItem(`minisTree_unseenEvolution_${user.id}`, 'true');
-                    } else if (savedHighestStage === null) {
+                    }
+                    // Handle first-time initialization
+                    else if (savedHighestStage === null) {
                         localStorage.setItem(storageKey, currentStageIdx.toString());
                     }
                 }
@@ -56,7 +63,16 @@ export const useTreeGrowth = () => {
         };
 
         fetchTotalHours();
-    }, [user, startDate, endDate, cacheKey]);
+    }, [user, startDate, endDate, cacheKey, unseenKey]);
+
+    const dismissLevelUp = () => {
+        setShowLevelUp(false);
+        const stageIndex = TREE_STAGES.findLastIndex(s => totalHours >= s.minHours);
+        const storageKey = `minisTree_highestStage_${user?.id}`;
+        const unseenKey = `minisTree_unseenEvolution_${user?.id}`;
+        localStorage.setItem(storageKey, stageIndex.toString());
+        localStorage.setItem(unseenKey, 'false');
+    };
 
     const stageIndex = TREE_STAGES.findLastIndex(s => totalHours >= s.minHours);
     const currentStage = TREE_STAGES[stageIndex] || TREE_STAGES[0];
@@ -73,6 +89,7 @@ export const useTreeGrowth = () => {
         loading,
         showLevelUp,
         setShowLevelUp,
+        dismissLevelUp,
         stageIndex,
         currentStage,
         nextStage,

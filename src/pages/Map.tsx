@@ -6,7 +6,7 @@ import { MapPin, Search, Navigation, List, Map as MapIcon, MapPinOff, Loader2, S
 import L from 'leaflet';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useVisits } from '../hooks/useVisits';
-import { seedlingIcon, maturePlantIcon, dropletIcon } from '../components/map/MapIcons';
+import { seedlingIcon, maturePlantIcon, dropletIcon, dryingSeedlingIcon, dryingMaturePlantIcon } from '../components/map/MapIcons';
 import { AddVisitModal } from '../components/map/AddVisitModal';
 import { VisitDetailsModal } from '../components/map/VisitDetailsModal';
 import { WateringModal } from '../components/map/WateringModal';
@@ -24,6 +24,8 @@ interface Visit {
     address?: string;
     remarks?: string;
     availability_day?: string;
+    last_visit_date?: string;
+    created_at?: string;
 }
 
 // Fix for leaflet default icon issue in React
@@ -186,7 +188,8 @@ const VisitsMap = () => {
             attempt_reason: waterIsAttempt ? waterAttemptReason : ''
         }, { 
             literature_given: waterIsAttempt ? editingVisit.literature_given : waterGiven, 
-            rv_questions: waterIsAttempt ? editingVisit.rv_questions : waterQuestions 
+            rv_questions: waterIsAttempt ? editingVisit.rv_questions : waterQuestions,
+            last_visit_date: waterIsAttempt ? editingVisit.last_visit_date : lastVisited
         });
         if (!error) {
             setShowWater(false);
@@ -342,78 +345,94 @@ const VisitsMap = () => {
                 <AnimatePresence>
                     {activeTab === 'list' ? (
                         <motion.div key="list-view" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="h-full overflow-y-auto p-4 space-y-3">
-                            {filteredVisits.length > 0 ? filteredVisits.map((visit) => (
-                                <motion.div 
-                                    key={visit.id} 
-                                    onClick={() => { setEditingVisit(visit); fetchVisitLogs(visit.id); setShowDetails(true); }} 
-                                    className={`relative px-4 h-[92px] rounded-[2rem] border border-[#d1e2e2] shadow-[0_8px_30px_rgb(0,0,0,0.04)] cursor-pointer transition-all overflow-hidden group bg-white hover:border-nature-green/30 flex items-center`}
-                                >
-                                    <div className="flex items-center gap-4 w-full">
-                                        {/* Readable Micro Type Tags - Shorthand BS/RV */}
-                                        <div className="relative shrink-0">
-                                            <div className={`w-14 h-14 rounded-full flex items-center justify-center border shadow-inner ${
-                                                visit.is_bible_study 
-                                                    ? 'bg-[#e8f5f1] border-[#c2e5db]' 
-                                                    : 'bg-[#ebf3fe] border-[#d4e4f9]'
-                                            }`}>
-                                                <span className={`${visit.is_bible_study ? 'text-3xl' : 'text-2xl'} filter drop-shadow-sm`}>
-                                                    {visit.is_bible_study ? '🌳' : '🌱'}
-                                                </span>
-                                            </div>
-                                            <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border shadow-sm ${
-                                                visit.is_bible_study 
-                                                    ? 'bg-[#e8f5f1] border-[#c2e5db] text-[#4a9d80]' 
-                                                    : 'bg-[#ebf3fe] border-[#d4e4f9] text-[#5c8ed1]'
-                                            }`}>
-                                                <span className="text-[7px] font-black uppercase tracking-widest leading-none block">{visit.is_bible_study ? 'BS' : 'RV'}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-1 min-w-0 py-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-[17px] font-black text-[#8b5e3c] tracking-tight truncate leading-tight">{visit.name}</h3>
-                                                {visit.gender === 'Male' ? (
-                                                    <Mars size={16} className="text-[#5c8ed1]" strokeWidth={3} />
-                                                ) : visit.gender === 'Female' ? (
-                                                    <Venus size={16} className="text-[#E91E63]" strokeWidth={3} />
-                                                ) : null}
-                                            </div>
-                                            <div className="flex items-start gap-1.5">
-                                                <MapPin size={10} className="text-[#b4c7c7] mt-1 shrink-0" />
-                                                <div className="space-y-0.5">
-                                                    <p className="text-[11px] text-[#8b8b8b] font-medium leading-tight line-clamp-2 italic">{visit.address || 'No address'}</p>
-                                                    <p className="text-[9px] text-[#b4c7c7] font-bold leading-tight line-clamp-1">{visit.remarks?.substring(0, 60) || 'No description provided'}</p>
+                            {filteredVisits.length > 0 ? filteredVisits.map((visit) => {
+                                const lastDate = visit.last_visit_date || visit.created_at;
+                                const diff = lastDate ? new Date().getTime() - new Date(lastDate).getTime() : 0;
+                                const unhealthy = diff > 30 * 24 * 60 * 60 * 1000;
+                                const weeksPassed = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+                                const weeksRemaining = 12 - weeksPassed;
+                                return (
+                                    <motion.div 
+                                        key={visit.id} 
+                                        onClick={() => { setEditingVisit(visit); fetchVisitLogs(visit.id); setShowDetails(true); }} 
+                                        className={`relative px-4 h-[92px] rounded-[2rem] border border-[#d1e2e2] shadow-[0_8px_30px_rgb(0,0,0,0.04)] cursor-pointer transition-all overflow-hidden group bg-white hover:border-nature-green/30 flex items-center ${unhealthy ? 'opacity-80 grayscale-[0.2]' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-4 w-full">
+                                            {/* Readable Micro Type Tags - Shorthand BS/RV */}
+                                            <div className="relative shrink-0">
+                                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border shadow-inner ${
+                                                    visit.is_bible_study 
+                                                        ? (unhealthy ? 'bg-rose-50/50 border-rose-200' : 'bg-[#e8f5f1] border-[#c2e5db]')
+                                                        : (unhealthy ? 'bg-amber-50/50 border-amber-200' : 'bg-[#ebf3fe] border-[#d4e4f9]')
+                                                }`}>
+                                                    <span className={`${visit.is_bible_study ? 'text-3xl' : 'text-2xl'} filter drop-shadow-sm ${unhealthy ? 'sepia brightness-90' : ''}`}>
+                                                        {visit.is_bible_study ? '🌳' : '🌱'}
+                                                    </span>
+                                                </div>
+                                                <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border shadow-sm ${
+                                                    visit.is_bible_study 
+                                                        ? (unhealthy ? 'bg-rose-100 border-rose-200 text-rose-500' : 'bg-[#e8f5f1] border-[#c2e5db] text-[#4a9d80]')
+                                                        : (unhealthy ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-[#ebf3fe] border-[#d4e4f9] text-[#5c8ed1]')
+                                                }`}>
+                                                    <span className="text-[7px] font-black uppercase tracking-widest leading-none block">{visit.is_bible_study ? 'BS' : 'RV'}</span>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Combined Action Pill */}
-                                        <div className="flex items-center bg-[#f8fbfb] border border-[#e8f2f2] rounded-full overflow-hidden shadow-sm h-12 shrink-0">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); setEditingVisit(visit); setWaterGiven(''); setWaterQuestions(''); setWaterNotes(''); setShowWater(true); }}
-                                                className="px-4 h-full flex items-center justify-center text-[#5c8ed1] bg-[#ebf3fe]/40 hover:bg-[#ebf3fe] transition-colors"
-                                            >
-                                                <Droplets size={24} />
-                                            </button>
-                                            <div className="w-[1.5px] h-7 bg-[#d1e2e2]" />
-                                            <button 
-                                                onClick={(e) => { 
-                                                    e.stopPropagation(); 
-                                                    if (visit.latitude === 0 && visit.longitude === 0) {
-                                                        setNoLocationVisit(visit);
-                                                        return;
-                                                    }
-                                                    setPendingVisit(visit); 
-                                                    setActiveTab('map'); 
-                                                }} 
-                                                className="px-4 h-full flex items-center justify-center text-[#8b7e6a] hover:bg-white transition-colors"
-                                            >
-                                                <MapPin size={20} />
-                                            </button>
+                                            <div className="flex-1 min-w-0 py-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="text-[17px] font-black text-[#8b5e3c] tracking-tight truncate leading-tight">{visit.name}</h3>
+                                                    {visit.gender === 'Male' ? (
+                                                        <Mars size={16} className="text-[#5c8ed1]" strokeWidth={3} />
+                                                    ) : visit.gender === 'Female' ? (
+                                                        <Venus size={16} className="text-[#E91E63]" strokeWidth={3} />
+                                                    ) : null}
+                                                </div>
+                                                <div className="flex items-start gap-1.5">
+                                                    <MapPin size={10} className="text-[#b4c7c7] mt-1 shrink-0" />
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[11px] text-[#8b8b8b] font-medium leading-tight line-clamp-1 italic">{visit.address || 'No address'}</p>
+                                                        {unhealthy ? (
+                                                            <div className="flex items-center gap-1.5 py-0.5">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                                                <p className="text-[9px] text-amber-600 font-black uppercase tracking-tighter">
+                                                                    Drying out • {weeksRemaining > 0 ? `${weeksRemaining} weeks left` : 'Final week'}
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-[9px] text-[#b4c7c7] font-bold leading-tight line-clamp-1">{visit.remarks?.substring(0, 60) || 'No description provided'}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Combined Action Pill */}
+                                            <div className="flex items-center bg-[#f8fbfb] border border-[#e8f2f2] rounded-full overflow-hidden shadow-sm h-12 shrink-0">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setEditingVisit(visit); setWaterGiven(''); setWaterQuestions(''); setWaterNotes(''); setShowWater(true); }}
+                                                    className="px-4 h-full flex items-center justify-center text-[#5c8ed1] bg-[#ebf3fe]/40 hover:bg-[#ebf3fe] transition-colors"
+                                                >
+                                                    <Droplets size={24} />
+                                                </button>
+                                                <div className="w-[1.5px] h-7 bg-[#d1e2e2]" />
+                                                <button 
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        if (visit.latitude === 0 && visit.longitude === 0) {
+                                                            setNoLocationVisit(visit);
+                                                            return;
+                                                        }
+                                                        setPendingVisit(visit); 
+                                                        setActiveTab('map'); 
+                                                    }} 
+                                                    className="px-4 h-full flex items-center justify-center text-[#8b7e6a] hover:bg-white transition-colors"
+                                                >
+                                                    <MapPin size={20} />
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            )) : <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-6"><div className="w-24 h-24 bg-nature-cream rounded-3xl flex items-center justify-center">{loading ? <Loader2 size={48} className="animate-spin text-nature-green/50" /> : <MapPinOff size={48} />}</div><h3 className="text-xl font-black text-nature-brown-dark uppercase tracking-wider">{loading ? "Gathering Seedlings..." : "No Visits Found"}</h3></div>}
+                                    </motion.div>
+                                );
+                            }) : <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-6"><div className="w-24 h-24 bg-nature-cream rounded-3xl flex items-center justify-center">{loading ? <Loader2 size={48} className="animate-spin text-nature-green/50" /> : <MapPinOff size={48} />}</div><h3 className="text-xl font-black text-nature-brown-dark uppercase tracking-wider">{loading ? "Gathering Seedlings..." : "No Visits Found"}</h3></div>}
                         </motion.div>
                     ) : (
                         <div key="map-view" className="h-full w-full relative">
@@ -427,14 +446,23 @@ const VisitsMap = () => {
                             >
                                 <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' />
                                 <MapEvents onPositionSelect={() => {}} />
-                                {filteredVisits.map((visit) => (
-                                    <Marker 
-                                        key={visit.id} 
-                                        position={[visit.latitude, visit.longitude]} 
-                                        icon={visit.is_bible_study ? maturePlantIcon : seedlingIcon}
-                                        eventHandlers={{ click: () => { setEditingVisit(visit); fetchVisitLogs(visit.id); setShowDetails(true); } }}
-                                    />
-                                ))}
+                                {filteredVisits.map((visit) => {
+                                    const lastDate = visit.last_visit_date || visit.created_at;
+                                    const diff = lastDate ? new Date().getTime() - new Date(lastDate).getTime() : 0;
+                                    const isUnhealthy = diff > 30 * 24 * 60 * 60 * 1000;
+                                    const icon = visit.is_bible_study 
+                                        ? (isUnhealthy ? dryingMaturePlantIcon : maturePlantIcon)
+                                        : (isUnhealthy ? dryingSeedlingIcon : seedlingIcon);
+
+                                    return (
+                                        <Marker 
+                                            key={visit.id} 
+                                            position={[visit.latitude, visit.longitude]} 
+                                            icon={icon}
+                                            eventHandlers={{ click: () => { setEditingVisit(visit); fetchVisitLogs(visit.id); setShowDetails(true); } }}
+                                        />
+                                    );
+                                })}
                                 {showAdd && <LocationPicker />}
                                 {(showAdd && newPosition) && <Marker position={newPosition} icon={seedlingIcon} />}
                                 {userPosition && <Marker position={userPosition} icon={dropletIcon} />}

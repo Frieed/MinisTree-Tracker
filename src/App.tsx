@@ -11,6 +11,7 @@ const Schedule = lazy(() => import('./pages/Schedule.tsx'));
 const Profile = lazy(() => import('./pages/Profile.tsx'));
 const Login = lazy(() => import('./pages/Login.tsx'));
 const TreePet = lazy(() => import('./pages/TreePet.tsx'));
+const Notifications = lazy(() => import('./pages/Notifications.tsx'));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-nature-cream flex items-center justify-center">
@@ -59,6 +60,7 @@ function App() {
                 <Route path="map" element={<VisitsMap />} />
                 <Route path="tree" element={<TreePet />} />
                 <Route path="settings" element={<Profile />} />
+                <Route path="notifications" element={<Notifications />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

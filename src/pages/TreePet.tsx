@@ -1,24 +1,14 @@
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTreeGrowth } from '../hooks/useTreeGrowth';
 import { TreeEvolutionDisplay } from '../components/tree/TreeEvolutionDisplay';
 import { GrowthMilestonesGallery } from '../components/tree/GrowthMilestonesGallery';
-import { LevelUpModal } from '../components/tree/LevelUpModal';
 import { useUI } from '../context/UIContext';
 
 const TreePet = () => {
-  const { setIsModalOpen: setGlobalModalOpen } = useUI();
   const {
-    totalHours, loading, showLevelUp, setShowLevelUp,
+    totalHours, loading,
     stageIndex, currentStage, nextStage, progressToNext, hoursToNext, stages
   } = useTreeGrowth();
-
-  useEffect(() => {
-    if (showLevelUp) {
-      setGlobalModalOpen(true);
-      return () => setGlobalModalOpen(false);
-    }
-  }, [showLevelUp, setGlobalModalOpen]);
 
   if (loading) {
     return (
@@ -55,11 +45,6 @@ const TreePet = () => {
       />
       
       <GrowthMilestonesGallery stages={stages} stageIndex={stageIndex} />
-
-      <LevelUpModal 
-        show={showLevelUp} onClose={() => setShowLevelUp(false)} 
-        stageIndex={stageIndex} message={currentStage.message} 
-      />
     </div>
   );
 };

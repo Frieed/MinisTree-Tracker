@@ -57,6 +57,24 @@ export const maturePlantIcon = L.divIcon({
     iconAnchor: [28, 28]
 });
 
+export const dryingSeedlingIcon = L.divIcon({
+    html: `<div class="w-12 h-12 flex items-center justify-center filter sepia brightness-[0.8] drop-shadow-xl transition-all hover:scale-110 active:scale-95 text-3xl">
+        🌱
+       </div>`,
+    className: 'bg-transparent border-0',
+    iconSize: [48, 48],
+    iconAnchor: [24, 24]
+});
+
+export const dryingMaturePlantIcon = L.divIcon({
+    html: `<div class="w-14 h-14 flex items-center justify-center filter sepia brightness-[0.8] drop-shadow-xl transition-all hover:scale-110 active:scale-95 text-4xl">
+        🌳
+       </div>`,
+    className: 'bg-transparent border-0',
+    iconSize: [56, 56],
+    iconAnchor: [28, 28]
+});
+
 export const dropletIcon = L.divIcon({
     html: `<div class="w-20 h-20 relative flex items-center justify-center overflow-visible">
         <style>

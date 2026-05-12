@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ServiceYearProvider } from './context/ServiceYearContext'
 import { UIProvider } from './context/UIContext'
+import { NotificationsProvider } from './context/NotificationsContext'
 import './index.css'
 import App from './App.tsx'
 import { registerSW } from 'virtual:pwa-register'
@@ -27,9 +28,11 @@ createRoot(document.getElementById('root')!).render(
     <AuthProvider>
       <ServiceYearProvider>
         <UIProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <NotificationsProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </NotificationsProvider>
         </UIProvider>
       </ServiceYearProvider>
     </AuthProvider>

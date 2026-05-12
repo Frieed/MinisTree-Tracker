@@ -68,7 +68,7 @@ export const useVisits = () => {
         if (!user) return { error: 'User not authenticated' };
         
         // Optimistic UI
-        const tempId = editingId || `temp-${Date.now()}`;
+        const tempId = editingId || crypto.randomUUID();
         const optimisticVisit = { ...visitData, id: tempId, user_id: user.id };
         
         if (editingId) {
@@ -105,12 +105,22 @@ export const useVisits = () => {
 
             return result;
         } catch (err) {
+            const payload = editingId ? { ...visitData, id: editingId } : { ...visitData, id: tempId, user_id: user.id };
             await offlineStore.addToOutbox({
                 table: 'return_visits',
                 action: editingId ? 'UPDATE' : 'INSERT',
-                payload: editingId ? { ...visitData, id: editingId } : { ...visitData, user_id: user.id }
+                payload
             });
-            return { error: null, offline: true };
+
+            // Update cache
+            const cacheKey = `visits_${user.id}`;
+            const current = await offlineStore.getItem<any[]>(cacheKey) || [];
+            const updated = editingId 
+                ? current.map(v => v.id === editingId ? { ...v, ...optimisticVisit } : v)
+                : [optimisticVisit, ...current];
+            await offlineStore.setItem(cacheKey, updated);
+
+            return { error: null, offline: true, data: optimisticVisit };
         }
     };
 
@@ -137,8 +147,9 @@ export const useVisits = () => {
         if (!user) return { error: new Error('User not authenticated') };
         
         // Optimistic UI
-        const tempLogId = `temp-log-${Date.now()}`;
-        setVisitLogs(prev => [{ ...logData, id: tempLogId, visit_id: visitId }, ...prev]);
+        const tempLogId = crypto.randomUUID();
+        const optimisticLog = { ...logData, id: tempLogId, visit_id: visitId };
+        setVisitLogs(prev => [optimisticLog, ...prev]);
         setVisits(prev => prev.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
 
         try {
@@ -159,13 +170,23 @@ export const useVisits = () => {
             await offlineStore.addToOutbox({
                 table: 'visit_logs',
                 action: 'INSERT',
-                payload: { visit_id: visitId, ...logData }
+                payload: { ...logData, id: tempLogId, visit_id: visitId }
             });
             await offlineStore.addToOutbox({
                 table: 'return_visits',
                 action: 'UPDATE',
                 payload: { ...latestUpdate, id: visitId }
             });
+
+            // Update cache
+            const cacheKey = `visits_${user.id}`;
+            const cachedVisits = await offlineStore.getItem<any[]>(cacheKey) || [];
+            await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
+            
+            const logCacheKey = `logs_${visitId}`;
+            const cachedLogs = await offlineStore.getItem<any[]>(logCacheKey) || [];
+            await offlineStore.setItem(logCacheKey, [optimisticLog, ...cachedLogs]);
+
             return { error: null, offline: true };
         }
     };

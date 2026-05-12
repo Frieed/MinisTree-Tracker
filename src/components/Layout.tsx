@@ -11,7 +11,7 @@ const Layout = () => {
   const lastScrollY = useRef(0);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingTo, setPendingTo] = useState<string | null>(null);
 
@@ -57,9 +57,9 @@ const Layout = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ 
-              duration: 0.3, 
-              ease: [0.22, 1, 0.36, 1] 
+            transition={{
+              duration: 0.3,
+              ease: [0.22, 1, 0.36, 1]
             }}
             style={{ willChange: 'transform, opacity' }}
           >
@@ -77,10 +77,10 @@ const Layout = () => {
         <NavItem to="/tree" icon={<TreePine size={22} />} label="Tree" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
       </nav>
 
-      <UnsavedChangesModal 
-        isOpen={showUnsavedModal} 
-        onClose={() => setShowUnsavedModal(false)} 
-        onConfirm={handleConfirmLeave} 
+      <UnsavedChangesModal
+        isOpen={showUnsavedModal}
+        onClose={() => setShowUnsavedModal(false)}
+        onConfirm={handleConfirmLeave}
       />
     </div>
   );

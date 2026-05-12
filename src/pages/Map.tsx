@@ -250,7 +250,10 @@ const VisitsMap = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-nature-brown-light" size={18} />
                         <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-white border-2 border-nature-cream-light rounded-2xl py-4 pl-12 pr-4 shadow-soft outline-none font-medium text-sm" />
                     </div>
-                    <button onClick={() => { setEditingVisit(null); setFormStep(0); setShowAdd(true); setActiveTab('map'); }} className="w-14 h-[58px] bg-nature-green text-white rounded-2xl shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0"><Sprout size={24} /></button>
+                    <button onClick={() => { setEditingVisit(null); setFormStep(0); setShowAdd(true); setActiveTab('map'); }} className="min-w-[64px] px-2 h-[58px] bg-nature-green text-white rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0">
+                        <Sprout size={20} className="mb-0.5" />
+                        <span className="text-[8px] font-black uppercase tracking-widest">Add/Plant</span>
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 relative">

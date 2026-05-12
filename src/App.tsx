@@ -25,7 +25,7 @@ function App() {
   return (
     <AnimatePresence mode="wait">
       {loading ? (
-        <motion.div 
+        <motion.div
           key="loading"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -35,7 +35,7 @@ function App() {
           <div className="w-12 h-12 border-4 border-nature-green/20 border-t-nature-green rounded-full animate-spin" />
         </motion.div>
       ) : !user ? (
-        <motion.div 
+        <motion.div
           key="login"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

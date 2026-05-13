@@ -150,7 +150,9 @@ export const useVisits = () => {
         const tempLogId = crypto.randomUUID();
         const optimisticLog = { ...logData, id: tempLogId, visit_id: visitId };
         setVisitLogs(prev => [optimisticLog, ...prev]);
-        setVisits(prev => prev.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
+        
+        const updateWithDate = { ...latestUpdate, last_visit_date: logData.visit_date };
+        setVisits(prev => prev.map(v => v.id === visitId ? { ...v, ...updateWithDate } : v));
 
         try {
             const { error: logError } = await supabase.from('visit_logs').insert({ visit_id: visitId, ...logData });
@@ -185,13 +187,13 @@ export const useVisits = () => {
                 }
             }
 
-            const result = await supabase.from('return_visits').update(latestUpdate).eq('id', visitId).eq('user_id', user.id);
+            const result = await supabase.from('return_visits').update(updateWithDate).eq('id', visitId).eq('user_id', user.id);
             if (result.error) throw result.error;
 
             // Update cache
             const cacheKey = `visits_${user.id}`;
             const cachedVisits = await offlineStore.getItem<any[]>(cacheKey) || [];
-            await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
+            await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...updateWithDate } : v));
             
             await fetchVisitLogs(visitId);
             return result;
@@ -204,13 +206,13 @@ export const useVisits = () => {
             await offlineStore.addToOutbox({
                 table: 'return_visits',
                 action: 'UPDATE',
-                payload: { ...latestUpdate, id: visitId }
+                payload: { ...updateWithDate, id: visitId }
             });
 
             // Update cache
             const cacheKey = `visits_${user.id}`;
             const cachedVisits = await offlineStore.getItem<any[]>(cacheKey) || [];
-            await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...latestUpdate } : v));
+            await offlineStore.setItem(cacheKey, cachedVisits.map(v => v.id === visitId ? { ...v, ...updateWithDate } : v));
             
             const logCacheKey = `logs_${visitId}`;
             const cachedLogs = await offlineStore.getItem<any[]>(logCacheKey) || [];
@@ -252,7 +254,23 @@ export const useVisits = () => {
         try {
             const { error } = await supabase.from('visit_logs').delete().eq('id', logId);
             if (error) throw error;
+            
+            // After deleting, find the next latest log to update return_visits.last_visit_date
+            const { data: nextLatest } = await supabase
+                .from('visit_logs')
+                .select('visit_date')
+                .eq('visit_id', visitId)
+                .order('visit_date', { ascending: false })
+                .limit(1)
+                .single();
+            
+            await supabase
+                .from('return_visits')
+                .update({ last_visit_date: nextLatest?.visit_date || null })
+                .eq('id', visitId);
+
             await fetchVisitLogs(visitId);
+            await fetchVisits();
         } catch (err) {
             await offlineStore.addToOutbox({
                 table: 'visit_logs',

@@ -55,19 +55,20 @@ export const HandoverModal = ({ isOpen, onClose, visit, onHandover }: HandoverMo
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
                         onClick={handleClose}
-                        className="fixed inset-0 bg-nature-brown-dark/40 backdrop-blur-sm z-[1200]"
+                        className="fixed inset-0 bg-nature-brown-dark/40 backdrop-blur-md z-[1200]"
                     />
 
                     {/* Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.92, y: 24 }}
+                        initial={{ opacity: 0, scale: 0.85, y: 40 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.92, y: 24 }}
-                        transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                        exit={{ opacity: 0, scale: 0.85, y: 40 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
                         className="fixed inset-0 z-[1201] flex items-center justify-center p-6 pointer-events-none"
                     >
-                        <div className="w-full max-w-sm bg-nature-cream rounded-[3rem] shadow-2xl overflow-hidden border border-white/50 pointer-events-auto">
+                        <div className="w-full max-w-sm bg-nature-cream rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden border border-white/50 pointer-events-auto">
                             {/* Header */}
                             <div className="relative bg-nature-green/5 border-b border-nature-green/10 px-8 pt-8 pb-6 text-center">
                                 <div className="w-16 h-16 bg-nature-green/10 rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-inner">

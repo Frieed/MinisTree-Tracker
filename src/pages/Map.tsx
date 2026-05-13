@@ -162,15 +162,17 @@ const VisitsMap = () => {
         if (!error && !editingVisit?.id) {
             // If it's a new visit, create the initial log
             const visitId = (data as any)?.id;
+            const todayStr = new Date().toISOString().split('T')[0];
             if (visitId && (initialLiterature || initialQuestions || initialNotes)) {
                 await waterVisit(visitId, {
-                    visit_date: new Date().toISOString().split('T')[0],
+                    visit_date: todayStr,
                     literature: initialLiterature,
                     questions: initialQuestions,
                     notes: initialNotes
                 }, {
                     literature_given: initialLiterature,
-                    rv_questions: initialQuestions
+                    rv_questions: initialQuestions,
+                    last_visit_date: todayStr
                 });
             }
         }
@@ -351,7 +353,7 @@ const VisitsMap = () => {
                             {filteredVisits.length > 0 ? filteredVisits.map((visit) => {
                                 const lastDate = visit.last_visit_date || visit.created_at;
                                 const diff = lastDate ? new Date().getTime() - new Date(lastDate).getTime() : 0;
-                                const unhealthy = diff > 30 * 24 * 60 * 60 * 1000;
+                                const unhealthy = diff > 28 * 24 * 60 * 60 * 1000; // 4 weeks
                                 const weeksPassed = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
                                 const weeksRemaining = 12 - weeksPassed;
                                 return (
@@ -368,14 +370,14 @@ const VisitsMap = () => {
                                                         ? (unhealthy ? 'bg-rose-50/50 border-rose-200' : 'bg-[#e8f5f1] border-[#c2e5db]')
                                                         : (unhealthy ? 'bg-amber-50/50 border-amber-200' : 'bg-[#ebf3fe] border-[#d4e4f9]')
                                                 }`}>
-                                                    <span className={`${visit.is_bible_study ? 'text-3xl' : 'text-2xl'} filter drop-shadow-sm ${unhealthy ? 'sepia brightness-90' : ''}`}>
+                                                    <span className={`${visit.is_bible_study ? 'text-3xl' : 'text-2xl'} transition-all duration-700 ${unhealthy ? 'filter sepia(0.8) brightness(0.7) saturate(0.6) drop-shadow-sm' : 'filter drop-shadow-sm'}`}>
                                                         {visit.is_bible_study ? '🌳' : '🌱'}
                                                     </span>
                                                 </div>
-                                                <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border shadow-sm ${
+                                                <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border shadow-sm transition-colors duration-500 ${
                                                     visit.is_bible_study 
-                                                        ? (unhealthy ? 'bg-rose-100 border-rose-200 text-rose-500' : 'bg-[#e8f5f1] border-[#c2e5db] text-[#4a9d80]')
-                                                        : (unhealthy ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-[#ebf3fe] border-[#d4e4f9] text-[#5c8ed1]')
+                                                        ? (unhealthy ? 'bg-rose-50 border-rose-200 text-rose-500' : 'bg-[#e8f5f1] border-[#c2e5db] text-[#4a9d80]')
+                                                        : (unhealthy ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-[#ebf3fe] border-[#d4e4f9] text-[#5c8ed1]')
                                                 }`}>
                                                     <span className="text-[7px] font-black uppercase tracking-widest leading-none block">{visit.is_bible_study ? 'BS' : 'RV'}</span>
                                                 </div>
@@ -452,7 +454,7 @@ const VisitsMap = () => {
                                 {filteredVisits.map((visit) => {
                                     const lastDate = visit.last_visit_date || visit.created_at;
                                     const diff = lastDate ? new Date().getTime() - new Date(lastDate).getTime() : 0;
-                                    const isUnhealthy = diff > 30 * 24 * 60 * 60 * 1000;
+                                    const isUnhealthy = diff > 28 * 24 * 60 * 60 * 1000; // 4 weeks
                                     const icon = visit.is_bible_study 
                                         ? (isUnhealthy ? dryingMaturePlantIcon : maturePlantIcon)
                                         : (isUnhealthy ? dryingSeedlingIcon : seedlingIcon);

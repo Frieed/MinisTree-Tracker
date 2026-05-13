@@ -14,13 +14,23 @@ export const HealthMaintenanceModal: React.FC<HealthMaintenanceModalProps> = ({ 
     return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-nature-brown/20 backdrop-blur-md">
+                <>
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl border border-white/50 relative"
-                    >
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        onClick={onClose}
+                        className="fixed inset-0 z-[3000] bg-nature-brown-dark/40 backdrop-blur-md"
+                    />
+                    <div className="fixed inset-0 z-[3100] flex items-center justify-center p-4 pointer-events-none">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.85, y: 40 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.85, y: 40 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
+                            className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 relative pointer-events-auto"
+                        >
                         {/* Decorative Background */}
                         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl pointer-events-none" />
                         <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-nature-green/5 rounded-full blur-3xl pointer-events-none" />
@@ -83,8 +93,9 @@ export const HealthMaintenanceModal: React.FC<HealthMaintenanceModalProps> = ({ 
                                 </button>
                             </div>
                         </div>
-                    </motion.div>
-                </div>
+                        </motion.div>
+                    </div>
+                </>
             )}
         </AnimatePresence>,
         document.body

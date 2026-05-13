@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import { TreePine, CheckCircle2, Heart, HeartCrack, Leaf, Clock, Hourglass, Sprout } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useVisits } from '../hooks/useVisits';
 import { ServiceChart } from '../components/dashboard/ServiceChart';
 import { CountUp } from '../components/common/CountUp';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const {
     isDataLoaded,
     reportsByMonth,
@@ -198,7 +200,7 @@ const Dashboard = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-nature-cream/50">
-                  <th className="py-2 px-3 text-[9px] font-black uppercase tracking-widest text-nature-brown-light border-b border-nature-cream">Month</th>
+                  <th className="py-2 px-3 text-[9px] font-black uppercase tracking-widest text-nature-brown-light border-b border-nature-cream" title="Click a month to view details">Month</th>
                   <th className="py-2 px-3 text-[9px] font-black uppercase tracking-widest text-nature-brown-light border-b border-nature-cream text-center">CRDT</th>
                   <th className="py-2 px-3 text-[9px] font-black uppercase tracking-widest text-nature-brown-light border-b border-nature-cream text-center">SCHED</th>
                   <th className="py-2 px-3 text-[9px] font-black uppercase tracking-widest text-nature-brown-light border-b border-nature-cream text-center">Goal</th>
@@ -212,8 +214,11 @@ const Dashboard = () => {
 
                   return (
                     <tr key={idx} className={`group hover:bg-nature-cream/30 transition-colors ${isNow ? 'bg-nature-green/5' : ''}`}>
-                      <td className="py-2 px-3 text-xs font-bold text-nature-brown-dark flex items-center gap-1.5 h-[36px]">
-                        {month.substring(0, 3)}
+                      <td 
+                        onClick={() => navigate('/hours', { state: { date: item.date.toISOString() } })}
+                        className="py-2 px-3 text-xs font-bold text-nature-brown-dark flex items-center gap-1.5 h-[36px] cursor-pointer hover:text-nature-green transition-colors group/cell"
+                      >
+                        <span className="group-hover/cell:underline decoration-nature-green/30 underline-offset-4">{month.substring(0, 3)}</span>
                         {isNow && <span className="text-[7px] bg-nature-green text-white px-1 py-0.5 rounded-full uppercase tracking-tighter">Now</span>}
                         {isReported && <CheckCircle2 size={12} className="text-nature-green drop-shadow-sm" />}
                       </td>

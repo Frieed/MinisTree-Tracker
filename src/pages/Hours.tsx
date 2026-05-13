@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Heart, HeartCrack, Leaf } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useServiceYear } from '../context/ServiceYearContext';
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useHoursData } from '../hooks/useHoursData';
@@ -10,14 +11,27 @@ import { LogModal, StudiesModal } from '../components/hours/HoursModals';
 import { useUI } from '../context/UIContext';
 
 const Hours = () => {
+    const location = useLocation();
     const { startDate: serviceYearStartDate, endDate: serviceYearEndDate } = useServiceYear();
     const { setIsModalOpen: setGlobalModalOpen } = useUI();
+    
+    // Check for initial date from navigation state
+    const initialDate = location.state?.date ? new Date(location.state.date) : new Date();
+    
     const {
         currentDate, setCurrentDate,
         reports, isReported, monthlyStudies, dynamicGoal,
         plannedSchedule, dailySchedules, scheduleToDate, monthScheduleTotal, nextMonthGoal, loading, statusLoading,
         saveReport, deleteReport, toggleReported, saveStudies
-    } = useHoursData(new Date());
+    } = useHoursData(initialDate);
+
+    // Update currentDate if location state changes
+    useEffect(() => {
+        if (location.state?.date) {
+            const newDate = new Date(location.state.date);
+            setCurrentDate(newDate);
+        }
+    }, [location.state?.date, setCurrentDate]);
 
     const [selectedDay, setSelectedDay] = useState<Date | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);

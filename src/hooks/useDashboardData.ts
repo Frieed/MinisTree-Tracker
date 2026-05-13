@@ -188,6 +188,7 @@ export const useDashboardData = () => {
 
       return {
         month: m,
+        date: targetMonthDate,
         data,
         isNow,
         isFuture,

@@ -19,21 +19,23 @@ export const HealthMaintenanceModal: React.FC<HealthMaintenanceModalProps> = ({ 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[3000] bg-nature-brown-dark/40 backdrop-blur-md"
+                        style={{ willChange: 'opacity' }}
+                        className="fixed inset-0 z-[3000] bg-nature-brown-dark/40 backdrop-blur-sm"
                     />
                     <div className="fixed inset-0 z-[3100] flex items-center justify-center p-4 pointer-events-none">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.85, y: 40 }}
+                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.85, y: 40 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 350, mass: 0.5 }}
+                            style={{ willChange: 'transform, opacity' }}
                             className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 relative pointer-events-auto"
                         >
-                        {/* Decorative Background */}
-                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl pointer-events-none" />
-                        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-nature-green/5 rounded-full blur-3xl pointer-events-none" />
+                        {/* Simplified Decorative Background */}
+                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-100/30 rounded-full pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-nature-green/5 rounded-full pointer-events-none" />
 
                         <div className="p-8 relative z-10">
                             <div className="flex justify-between items-start mb-8">

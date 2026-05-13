@@ -55,17 +55,19 @@ export const HandoverModal = ({ isOpen, onClose, visit, onHandover }: HandoverMo
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.2 }}
                         onClick={handleClose}
-                        className="fixed inset-0 bg-nature-brown-dark/40 backdrop-blur-md z-[1200]"
+                        style={{ willChange: 'opacity' }}
+                        className="fixed inset-0 bg-nature-brown-dark/40 backdrop-blur-sm z-[1200]"
                     />
 
                     {/* Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.85, y: 40 }}
+                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.85, y: 40 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 350, mass: 0.5 }}
+                        style={{ willChange: 'transform, opacity' }}
                         className="fixed inset-0 z-[1201] flex items-center justify-center p-6 pointer-events-none"
                     >
                         <div className="w-full max-w-sm bg-nature-cream rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden border border-white/50 pointer-events-auto">

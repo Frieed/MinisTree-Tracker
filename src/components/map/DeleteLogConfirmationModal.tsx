@@ -26,16 +26,18 @@ export const DeleteLogConfirmationModal = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[4000] bg-nature-brown-dark/40 backdrop-blur-md"
+                        style={{ willChange: 'opacity' }}
+                        className="fixed inset-0 z-[4000] bg-nature-brown-dark/40 backdrop-blur-sm"
                     />
                     <div className="fixed inset-0 z-[4100] flex items-center justify-center p-6 pointer-events-none">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.85, y: 40 }}
+                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.85, y: 40 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 350, mass: 0.5 }}
+                            style={{ willChange: 'transform, opacity' }}
                             className="w-full max-w-sm bg-white rounded-[2.5rem] p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-nature-cream pointer-events-auto relative overflow-hidden"
                         >
                             {/* Decorative Background Elements */}

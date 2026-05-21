@@ -16,7 +16,7 @@ const Login = () => {
 
   // OTP state
   const [showOtpScreen, setShowOtpScreen] = useState(false);
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '', '', '']);
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -89,7 +89,7 @@ const Login = () => {
     const next = [...otpDigits];
     next[idx] = digit;
     setOtpDigits(next);
-    if (digit && idx < 5) {
+    if (digit && idx < 7) {
       otpRefs.current[idx + 1]?.focus();
     }
   };
@@ -101,12 +101,12 @@ const Login = () => {
   };
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 8);
     if (pasted.length > 0) {
       const next = [...otpDigits];
-      pasted.split('').forEach((ch, i) => { if (i < 6) next[i] = ch; });
+      pasted.split('').forEach((ch, i) => { if (i < 8) next[i] = ch; });
       setOtpDigits(next);
-      const focusIdx = Math.min(pasted.length, 5);
+      const focusIdx = Math.min(pasted.length, 7);
       otpRefs.current[focusIdx]?.focus();
     }
     e.preventDefault();
@@ -115,8 +115,8 @@ const Login = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = otpDigits.join('');
-    if (token.length < 6) {
-      setError('Please enter the full 6-digit code.');
+    if (token.length < 8) {
+      setError('Please enter the full 8-digit code.');
       return;
     }
     setLoading(true);
@@ -149,7 +149,7 @@ const Login = () => {
       setError(resendError.message);
     } else {
       setMessage('A new code has been sent to your email!');
-      setOtpDigits(['', '', '', '', '', '']);
+      setOtpDigits(['', '', '', '', '', '', '', '']);
       otpRefs.current[0]?.focus();
       startResendCooldown();
     }
@@ -176,12 +176,12 @@ const Login = () => {
           <div className="card shadow-2xl backdrop-blur-sm bg-white/90">
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <p className="text-sm text-nature-brown text-center font-medium leading-relaxed">
-                We sent a <span className="font-black text-nature-brown-dark">6-digit code</span> to<br />
+                We sent a <span className="font-black text-nature-brown-dark">8-digit code</span> to<br />
                 <span className="font-black text-nature-green">{email}</span>
               </p>
 
               {/* OTP Input Grid */}
-              <div className="flex justify-center gap-3" onPaste={handleOtpPaste}>
+              <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
                 {otpDigits.map((digit, idx) => (
                   <motion.input
                     key={idx}
@@ -196,7 +196,7 @@ const Login = () => {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    className={`w-11 h-14 text-center text-2xl font-black rounded-xl border-2 outline-none transition-all duration-200 bg-nature-cream
+                    className={`w-9 h-12 text-center text-xl font-black rounded-xl border-2 outline-none transition-all duration-200 bg-nature-cream
                       ${digit
                         ? 'border-nature-green text-nature-green shadow-[0_0_0_3px_rgba(107,142,35,0.15)]'
                         : 'border-nature-cream-light text-nature-brown-dark focus:border-nature-green focus:shadow-[0_0_0_3px_rgba(107,142,35,0.1)]'
@@ -231,8 +231,8 @@ const Login = () => {
 
               <button
                 type="submit"
-                disabled={loading || otpDigits.join('').length < 6}
-                className="w-full btn-primary h-14 text-lg font-bold shadow-xl overflow-hidden relative active:scale-95 disabled:opacity-50"
+                disabled={loading || otpDigits.join('').length < 8}
+                className="w-full btn-primary h-14 text-lg font-bold shadow-xl overflow-hidden relative active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="animate-spin" />
@@ -265,7 +265,7 @@ const Login = () => {
                 type="button"
                 onClick={() => {
                   setShowOtpScreen(false);
-                  setOtpDigits(['', '', '', '', '', '']);
+                  setOtpDigits(['', '', '', '', '', '', '', '']);
                   setError(null);
                   setMessage(null);
                 }}

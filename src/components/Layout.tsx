@@ -85,13 +85,31 @@ const Layout = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className={`fixed left-1/2 -translate-x-1/2 w-[88%] max-w-[400px] bg-white/90 backdrop-blur-lg border border-nature-cream-light py-2 px-6 flex justify-between items-center z-[40] rounded-[2.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] transition-all duration-500 ease-out ${isVisible && !isModalOpen ? 'bottom-5 opacity-100' : '-bottom-24 opacity-0 pointer-events-none'}`}>
+      <motion.nav
+        initial={false}
+        animate={{
+          y: isVisible && !isModalOpen ? 0 : 120,
+          opacity: isVisible && !isModalOpen ? 1 : 0,
+          scale: isVisible && !isModalOpen ? 1 : 0.95,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 300,
+          damping: 30,
+        }}
+        style={{
+          x: '-50%',
+          pointerEvents: isVisible && !isModalOpen ? 'auto' : 'none',
+          willChange: 'transform, opacity',
+        }}
+        className="fixed bottom-5 left-1/2 w-[88%] max-w-[400px] bg-white/90 backdrop-blur-lg border border-nature-cream-light py-2 px-6 flex justify-between items-center z-[40] rounded-[2.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)]"
+      >
         <NavItem to="/" icon={<LayoutDashboard size={22} />} label="Home" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/hours" icon={<Clock size={22} />} label="Hours" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/schedule" icon={<CalendarDays size={22} />} label="Schedule" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/map" icon={<Sprout size={22} />} label="Garden" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/tree" icon={<TreePine size={22} />} label="Tree" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
-      </nav>
+      </motion.nav>
 
       <UnsavedChangesModal
         isOpen={showUnsavedModal}

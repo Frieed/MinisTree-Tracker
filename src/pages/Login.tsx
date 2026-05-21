@@ -58,6 +58,23 @@ const Login = () => {
     }
 
     if (isSignUp) {
+      // Pre-check: Check if the email is already registered in profiles
+      try {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email.toLowerCase().trim())
+          .maybeSingle();
+
+        if (existingUser) {
+          setError("This email is already registered. Please sign in instead.");
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        // Fallback: If RLS prevents unauthenticated reading, continue to let Supabase Auth handle it
+      }
+
       const { data, error: authError } = await supabase.auth.signUp({ email, password });
       if (authError) {
         setError(authError.message);

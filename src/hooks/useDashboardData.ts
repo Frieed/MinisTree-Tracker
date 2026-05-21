@@ -90,6 +90,10 @@ export const useDashboardData = () => {
   }, [serviceYearStartDate, serviceYearEndDate, user]);
 
   const memoizedData = useMemo(() => {
+    // Pre-build Maps and Sets for O(1) lookups
+    const dailySchedulesMap = new Map(dailySchedules.map(s => [s.date, s]));
+    const monthlySchedulesMap = new Map(monthlySchedules.map(s => [s.month, s]));
+    
     // Aggregations
     const reportsByMonth = reports.reduce((acc: any, report) => {
       const month = format(parseISO(report.date), 'MMMM');
@@ -113,11 +117,12 @@ export const useDashboardData = () => {
     const isCurrentServiceYear = today >= serviceYearStartDate && today <= serviceYearEndDate;
     const actualMonthName = isCurrentServiceYear ? format(today, 'MMMM') : null;
     const reportedMonthsNames = submissions.filter(s => s.is_reported).map(s => format(parseISO(s.month), 'MMMM'));
+    const reportedMonthsSet = new Set(reportedMonthsNames);
     
     let currentMonthName = '';
     if (isCurrentServiceYear) {
         let activeMonthIdx = SERVICE_YEAR_MONTHS.indexOf(actualMonthName!);
-        while (activeMonthIdx < 11 && reportedMonthsNames.includes(SERVICE_YEAR_MONTHS[activeMonthIdx])) {
+        while (activeMonthIdx < 11 && reportedMonthsSet.has(SERVICE_YEAR_MONTHS[activeMonthIdx])) {
           activeMonthIdx++;
         }
         currentMonthName = SERVICE_YEAR_MONTHS[activeMonthIdx];
@@ -153,10 +158,7 @@ export const useDashboardData = () => {
       const data = reportsByMonth[m];
       const isNow = m === currentMonthName;
       const isFuture = (SERVICE_YEAR_MONTHS.indexOf(m) > SERVICE_YEAR_MONTHS.indexOf(currentMonthName));
-      const isReported = submissions.some((sub: any) =>
-        sub.is_reported &&
-        format(parseISO(sub.month), 'MMMM') === m
-      );
+      const isReported = reportedMonthsSet.has(m);
 
       let accumulatedHours = 0;
       for (let i = 0; i < idx; i++) {
@@ -171,7 +173,7 @@ export const useDashboardData = () => {
       const targetYear = targetMonthDate.getFullYear() > 2100 ? targetMonthDate.getFullYear() - 543 : targetMonthDate.getFullYear();
       const targetMonthStr = `${targetYear}-${String(targetMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
       
-      const baseSchedule = monthlySchedules.find(s => s.month === targetMonthStr)?.schedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
+      const baseSchedule = monthlySchedulesMap.get(targetMonthStr)?.schedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 };
       
       const projectedSchedule = eachDayOfInterval({
         start: startOfMonth(targetMonthDate),
@@ -180,7 +182,7 @@ export const useDashboardData = () => {
         const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
         const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayIdx = getDay(day);
-        const specific = dailySchedules.find(s => s.date === dateStr);
+        const specific = dailySchedulesMap.get(dateStr);
         if (specific) return acc + (Number(specific.hours) || 0);
         // Robust lookup for mobile compatibility
         return acc + (baseSchedule[dayIdx] ?? baseSchedule[dayIdx.toString()] ?? 0);

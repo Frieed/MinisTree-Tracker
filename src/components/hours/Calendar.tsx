@@ -1,33 +1,59 @@
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDay } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { CountUp } from '../common/CountUp';
 
+interface CalendarReportItem {
+    date: string;
+    hours: number | string;
+    credit?: number | string | null;
+}
+
+interface CalendarDailySchedule {
+    date: string;
+    hours: number | string;
+}
+
 interface CalendarProps {
     currentDate: Date;
-    reports: any[];
-    dailySchedules: any[];
+    reports: CalendarReportItem[];
+    dailySchedules: CalendarDailySchedule[];
     plannedSchedule: Record<string | number, number>;
     onDayClick: (day: Date) => void;
 }
 
-export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule, onDayClick }: CalendarProps) => {
+export const Calendar = memo(({ currentDate, reports, dailySchedules, plannedSchedule, onDayClick }: CalendarProps) => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
     const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
+    // Pre-build O(1) lookup Maps for the calendar days
+    const dailyReportsMap = useMemo(() => {
+        const map = new Map<string, { hours: number; credit: number }>();
+        reports.forEach(r => {
+            const current = map.get(r.date) || { hours: 0, credit: 0 };
+            map.set(r.date, {
+                hours: current.hours + (Number(r.hours) || 0),
+                credit: current.credit + (Number(r.credit) || 0)
+            });
+        });
+        return map;
+    }, [reports]);
+
+    const dailySchedulesMap = useMemo(() => {
+        return new Map(dailySchedules.map(s => [s.date, s]));
+    }, [dailySchedules]);
+
     return (
         <div className="grid grid-cols-7 divide-x divide-y divide-nature-cream border-l border-t border-nature-cream text-center">
             {calendarDays.map((day, idx) => {
                 const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
                 const dateKey = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-                const dayReports = reports.filter(r => r.date === dateKey);
-                const report = dayReports.length > 0 ? {
-                    hours: dayReports.reduce((acc, r) => acc + (Number(r.hours) || 0), 0),
-                    credit: dayReports.reduce((acc, r) => acc + (Number(r.credit) || 0), 0)
-                } : null;
+                
+                const report = dailyReportsMap.get(dateKey) || null;
                 const isCurrentMonth = isSameMonth(day, monthStart);
 
                 return (
@@ -59,7 +85,7 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                 {(() => {
                                     const h = Math.floor(report.hours);
                                     const m = Math.round((report.hours % 1) * 60);
-                                    const dailyOverride = dailySchedules.find(s => s.date === dateKey);
+                                    const dailyOverride = dailySchedulesMap.get(dateKey);
                                     const dayIdx = getDay(day);
                                     
                                     let plannedForDay = 0;
@@ -69,8 +95,8 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                         const sundayKeys = [0, 7, "0", "7"];
                                         const lookupKeys = dayIdx === 0 ? sundayKeys : [dayIdx, dayIdx.toString()];
                                         for (const key of lookupKeys) {
-                                            if (plannedSchedule[key as any] !== undefined) {
-                                                plannedForDay = Number(plannedSchedule[key as any]);
+                                            if (plannedSchedule[key] !== undefined) {
+                                                plannedForDay = Number(plannedSchedule[key]);
                                                 break;
                                             }
                                         }
@@ -102,10 +128,8 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                         ) : !report && isCurrentMonth ? (
                             <>
                                 {(() => {
-                                    const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
-                                    const dateKey = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                                     const dayIdx = getDay(day);
-                                    const daily = dailySchedules.find(s => s.date === dateKey);
+                                    const daily = dailySchedulesMap.get(dateKey);
                                     
                                     let planned = 0;
                                     if (daily) {
@@ -115,8 +139,8 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
                                         const lookupKey = dayIdx === 0 ? sundayKeys : [dayIdx, dayIdx.toString()];
                                         
                                         for (const key of (Array.isArray(lookupKey) ? lookupKey : [lookupKey])) {
-                                            if (plannedSchedule[key as any] !== undefined) {
-                                                planned = Number(plannedSchedule[key as any]);
+                                            if (plannedSchedule[key] !== undefined) {
+                                                planned = Number(plannedSchedule[key]);
                                                 break;
                                             }
                                         }
@@ -137,4 +161,6 @@ export const Calendar = ({ currentDate, reports, dailySchedules, plannedSchedule
             })}
         </div>
     );
-};
+});
+
+Calendar.displayName = 'Calendar';

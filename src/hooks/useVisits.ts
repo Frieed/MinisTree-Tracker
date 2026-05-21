@@ -285,33 +285,52 @@ export const useVisits = () => {
     useEffect(() => {
         const performCleanup = async () => {
             if (!user) return;
+
+            // Throttle: Only run cleanup once every 24 hours per user
+            const cleanupKey = `minisTree_lastCleanup_${user.id}`;
+            const lastCleanup = localStorage.getItem(cleanupKey);
+            const now = Date.now();
+            if (lastCleanup && now - Number(lastCleanup) < 24 * 60 * 60 * 1000) {
+                return;
+            }
+
             const threeMonthsAgo = new Date();
             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
             const dateThreshold = threeMonthsAgo.toISOString().split('T')[0];
 
-            const { data: candidates } = await supabase
-                .from('return_visits')
-                .select('id, created_at')
-                .eq('user_id', user.id)
-                .eq('is_bible_study', false);
+            try {
+                const { data: candidates } = await supabase
+                    .from('return_visits')
+                    .select('id, created_at')
+                    .eq('user_id', user.id)
+                    .eq('is_bible_study', false);
 
-            if (!candidates || candidates.length === 0) return;
+                if (!candidates || candidates.length === 0) {
+                    localStorage.setItem(cleanupKey, now.toString());
+                    return;
+                }
 
-            const { data: recentLogs } = await supabase
-                .from('visit_logs')
-                .select('visit_id')
-                .gte('visit_date', dateThreshold);
+                const { data: recentLogs } = await supabase
+                    .from('visit_logs')
+                    .select('visit_id')
+                    .gte('visit_date', dateThreshold);
 
-            const activeVisitIds = new Set(recentLogs?.map(l => l.visit_id) || []);
-            const toDelete = candidates.filter(rv => {
-                const isOld = new Date(rv.created_at) < threeMonthsAgo;
-                return isOld && !activeVisitIds.has(rv.id);
-            });
+                const activeVisitIds = new Set(recentLogs?.map(l => l.visit_id) || []);
+                const toDelete = candidates.filter(rv => {
+                    const isOld = new Date(rv.created_at) < threeMonthsAgo;
+                    return isOld && !activeVisitIds.has(rv.id);
+                });
 
-            if (toDelete.length > 0) {
-                const idsToDelete = toDelete.map(v => v.id);
-                const { error } = await supabase.from('return_visits').delete().in('id', idsToDelete);
-                if (!error) fetchVisits();
+                if (toDelete.length > 0) {
+                    const idsToDelete = toDelete.map(v => v.id);
+                    const { error } = await supabase.from('return_visits').delete().in('id', idsToDelete);
+                    if (!error) fetchVisits();
+                }
+
+                // Mark cleanup as completed successfully
+                localStorage.setItem(cleanupKey, now.toString());
+            } catch (err) {
+                console.error('[Offline] Error performing auto-cleanup:', err);
             }
         };
 

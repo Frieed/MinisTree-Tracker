@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ShieldAlert, ArrowLeft, Trash2, CheckCircle2, Inbox, Loader2, Trophy } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Bell, ShieldAlert, Trash2, CheckCircle2, Inbox, Loader2, Trophy } from 'lucide-react';
 import { useNotifications } from '../context/NotificationsContext';
 import { formatDistanceToNow } from 'date-fns';
 import { NotificationsClearModal } from '../components/notifications/NotificationsClearModal';
@@ -9,7 +8,6 @@ import { useState } from 'react';
 import { type Notification } from '../hooks/useNotifications';
 
 const Notifications = () => {
-    const navigate = useNavigate();
     const { notifications, loading, markAsRead, markAllAsRead, deleteNotification, respondToHandover } = useNotifications();
     const [showClearModal, setShowClearModal] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
@@ -33,15 +31,7 @@ const Notifications = () => {
         <div className="px-6 space-y-6 pb-20">
             <header className="space-y-4 mb-2">
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <button 
-                            onClick={() => navigate(-1)}
-                            className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-nature-brown shadow-soft hover:text-nature-green transition-colors"
-                        >
-                            <ArrowLeft size={20} />
-                        </button>
-                        <h2 className="text-2xl font-black text-nature-brown-dark uppercase tracking-tight">Notifications</h2>
-                    </div>
+                    <h2 className="text-2xl font-black text-nature-brown-dark uppercase tracking-tight">Notifications</h2>
                 </div>
 
                 <div className="flex items-center justify-between gap-3 px-1">

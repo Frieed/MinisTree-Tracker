@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Heart, HeartCrack, Leaf } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useServiceYear } from '../context/ServiceYearContext';
@@ -61,7 +61,7 @@ const Hours = () => {
         }
     }, [isStudiesModalOpen, setGlobalModalOpen]);
 
-    const handleDayClick = (day: Date) => {
+    const handleDayClick = useCallback((day: Date) => {
         const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
         const dateKey = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
         const dayReports = reports.filter(r => r.date === dateKey);
@@ -80,7 +80,7 @@ const Hours = () => {
         setSelectedDay(day);
         setError(null);
         setIsModalOpen(true);
-    };
+    }, [reports]);
 
     const onSaveReport = async () => {
         if (!selectedDay) return;

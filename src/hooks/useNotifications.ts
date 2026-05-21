@@ -79,7 +79,7 @@ export const useNotificationsData = () => {
         }
     };
 
-    const createNotification = async (
+    const createNotification = useCallback(async (
         title: string, 
         message: string, 
         type: 'info' | 'warning' | 'success' = 'info',
@@ -99,7 +99,7 @@ export const useNotificationsData = () => {
         } catch (err) {
             console.error('[Notifications] Failed to create:', err);
         }
-    };
+    }, [user, fetchNotifications]);
 
     const checkAndGenerateNotifications = useCallback(async (visits: any[], stageIdx: number) => {
         if (!user) return;
@@ -107,18 +107,25 @@ export const useNotificationsData = () => {
         // Wait for notifications to load if they are currently loading
         if (loading) return;
 
-        // 0. Auto-Cleanup (Delete notifications older than 24 hours)
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        try {
-            const { error: cleanupError } = await supabase
-                .from('notifications')
-                .delete()
-                .eq('user_id', user.id)
-                .lt('created_at', twentyFourHoursAgo);
-            
-            if (cleanupError) throw cleanupError;
-        } catch (err) {
-            console.error('[Notifications] Auto-cleanup failed:', err);
+        const nowTime = Date.now();
+
+        // 0. Auto-Cleanup (Delete notifications older than 24 hours) - Throttled to once every 24 hours per user
+        const cleanupKey = `minisTree_lastNotifCleanup_${user.id}`;
+        const lastNotifCleanup = localStorage.getItem(cleanupKey);
+        if (!lastNotifCleanup || nowTime - Number(lastNotifCleanup) > 24 * 60 * 60 * 1000) {
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            try {
+                const { error: cleanupError } = await supabase
+                    .from('notifications')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .lt('created_at', twentyFourHoursAgo);
+                
+                if (cleanupError) throw cleanupError;
+                localStorage.setItem(cleanupKey, nowTime.toString());
+            } catch (err) {
+                console.error('[Notifications] Auto-cleanup failed:', err);
+            }
         }
 
         // 1. Drying Tree Warning (1 week left)
@@ -169,33 +176,45 @@ export const useNotificationsData = () => {
             localStorage.setItem(notifiedKey, stageIdx.toString());
         }
 
-        // 3. Missing Report Reminder
+        // 3. Missing Report Reminder - Throttled to once every 15 minutes per user
         const now = new Date();
         if (now.getDate() >= 1 && now.getDate() <= 10) {
-            const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const prevMonthStr = format(prevMonth, 'yyyy-MM-01');
-            const monthName = format(prevMonth, 'MMMM');
-            
-            const alreadyNotified = notifications.some(n => n.type === 'warning' && n.title.includes(`${monthName} Report`));
-            
-            if (!alreadyNotified) {
-                const { data: submission } = await supabase
-                    .from('monthly_submissions')
-                    .select('is_reported')
-                    .eq('user_id', user.id)
-                    .eq('month', prevMonthStr)
-                    .maybeSingle();
+            const reportCheckKey = `minisTree_lastReportCheck_${user.id}`;
+            const lastReportCheck = localStorage.getItem(reportCheckKey);
+            if (!lastReportCheck || nowTime - Number(lastReportCheck) > 15 * 60 * 1000) {
+                const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const prevMonthStr = format(prevMonth, 'yyyy-MM-01');
+                const monthName = format(prevMonth, 'MMMM');
+                
+                const alreadyNotified = notifications.some(n => n.type === 'warning' && n.title.includes(`${monthName} Report`));
+                
+                if (!alreadyNotified) {
+                    try {
+                        const { data: submission } = await supabase
+                            .from('monthly_submissions')
+                            .select('is_reported')
+                            .eq('user_id', user.id)
+                            .eq('month', prevMonthStr)
+                            .maybeSingle();
 
-                if (!submission?.is_reported) {
-                    await createNotification(
-                        `${monthName} Report Reminder`,
-                        `You haven't reported your activity for ${monthName} yet. Don't forget to mark it as reported in the Hours section!`,
-                        'warning'
-                    );
+                        if (!submission?.is_reported) {
+                            await createNotification(
+                                `${monthName} Report Reminder`,
+                                `You haven't reported your activity for ${monthName} yet. Don't forget to mark it as reported in the Hours section!`,
+                                'warning'
+                            );
+                        }
+                        localStorage.setItem(reportCheckKey, nowTime.toString());
+                    } catch (err) {
+                        console.error('[Notifications] Failed to check monthly submissions:', err);
+                    }
+                } else {
+                    // Even if already notified, update the check timestamp to prevent query attempts
+                    localStorage.setItem(reportCheckKey, nowTime.toString());
                 }
             }
         }
-    }, [user, loading, notifications]);
+    }, [user, loading, notifications, createNotification]);
 
     const respondToHandover = async (notificationId: string, transferId: string, accept: boolean) => {
         if (!user) return;

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Outlet, NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Clock, MapPin, Leaf, CalendarDays, TreePine, Settings, Bell } from 'lucide-react';
+import { LayoutDashboard, Clock, Leaf, CalendarDays, TreePine, Settings, Bell, Sprout } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUI } from '../context/UIContext';
 import { UnsavedChangesModal } from './common/UnsavedChangesModal';
@@ -89,7 +89,7 @@ const Layout = () => {
         <NavItem to="/" icon={<LayoutDashboard size={22} />} label="Home" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/hours" icon={<Clock size={22} />} label="Hours" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/schedule" icon={<CalendarDays size={22} />} label="Schedule" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
-        <NavItem to="/map" icon={<MapPin size={22} />} label="Map" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
+        <NavItem to="/map" icon={<Sprout size={22} />} label="Garden" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
         <NavItem to="/tree" icon={<TreePine size={22} />} label="Tree" onNavigateClick={(to) => { setPendingTo(to); setShowUnsavedModal(true); }} />
       </nav>
 

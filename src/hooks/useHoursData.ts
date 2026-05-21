@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isBefore } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -228,7 +228,11 @@ export const useHoursData = (initialDate: Date) => {
 
 
 
-    const getScheduleToDate = () => {
+    const dailySchedulesMap = useMemo(() => {
+        return new Map(dailySchedules.map(s => [s.date, s]));
+    }, [dailySchedules]);
+
+    const scheduleToDate = useMemo(() => {
         const today = new Date();
         const isCurrentMonth = isSameMonth(currentDate, today);
         
@@ -244,13 +248,13 @@ export const useHoursData = (initialDate: Date) => {
             const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
             const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
             const dayIdx = getDay(day);
-            const specific = dailySchedules.find(s => s.date === dateStr);
+            const specific = dailySchedulesMap.get(dateStr);
             if (specific) return acc + (Number(specific.hours) || 0);
             return acc + (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
         }, 0);
-    };
+    }, [currentDate, dailySchedulesMap, plannedSchedule]);
 
-    const getMonthScheduleTotal = () => {
+    const monthScheduleTotal = useMemo(() => {
         return eachDayOfInterval({
             start: startOfMonth(currentDate),
             end: endOfMonth(currentDate)
@@ -258,13 +262,13 @@ export const useHoursData = (initialDate: Date) => {
             const year = day.getFullYear() > 2100 ? day.getFullYear() - 543 : day.getFullYear();
             const dateStr = `${year}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
             const dayIdx = getDay(day);
-            const specific = dailySchedules.find(s => s.date === dateStr);
+            const specific = dailySchedulesMap.get(dateStr);
             if (specific) return acc + (Number(specific.hours) || 0);
             return acc + (plannedSchedule[dayIdx] ?? plannedSchedule[dayIdx.toString()] ?? 0);
         }, 0);
-    };
+    }, [currentDate, dailySchedulesMap, plannedSchedule]);
 
-    const getNextMonthGoal = () => {
+    const nextMonthGoal = useMemo(() => {
         const totalHours = reports.reduce((acc, r) => acc + (Number(r.hours) || 0), 0);
         const syMonths = ['September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August'];
         const monthIdx = syMonths.indexOf(format(currentDate, 'MMMM'));
@@ -273,10 +277,7 @@ export const useHoursData = (initialDate: Date) => {
         const remainingYearHours = (dynamicGoal * (12 - monthIdx)) - totalHours;
         const nextGoal = remainingYearHours / (11 - monthIdx);
         return Number(Math.max(0, nextGoal).toFixed(1));
-    };
-
-    const scheduleToDate = getScheduleToDate();
-    const monthScheduleTotal = getMonthScheduleTotal();
+    }, [currentDate, reports, dynamicGoal]);
 
     return {
         currentDate,
@@ -289,7 +290,7 @@ export const useHoursData = (initialDate: Date) => {
         dailySchedules,
         scheduleToDate,
         monthScheduleTotal,
-        nextMonthGoal: getNextMonthGoal(),
+        nextMonthGoal,
         loading,
         statusLoading,
         saveReport,

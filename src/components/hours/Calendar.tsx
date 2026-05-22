@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDay, isBefore, startOfDay } from 'date-fns';
 import { Plus } from 'lucide-react';
 
 interface CalendarReportItem {
@@ -145,9 +145,11 @@ export const Calendar = memo(({ currentDate, reports, dailySchedules, plannedSch
                                         }
                                     }
 
+                                    const isPastDay = isBefore(startOfDay(day), startOfDay(new Date()));
+
                                     if (planned > 0) return (
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                                            <span className={`text-[10px] font-black italic ${daily ? 'text-nature-green' : 'text-nature-brown'}`}>{planned}h</span>
+                                        <div className={`absolute inset-0 flex items-center justify-center pointer-events-none ${isPastDay ? 'opacity-40' : 'opacity-20'}`}>
+                                            <span className={`text-[10px] font-black italic ${isPastDay ? 'text-rose-500' : daily ? 'text-nature-green' : 'text-nature-brown'}`}>{planned}h</span>
                                         </div>
                                     );
                                     return null;

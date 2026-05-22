@@ -296,11 +296,11 @@ const Dashboard = () => {
         <section className="flex gap-3 mb-0">
           <div className="flex-1 bg-white rounded-3xl p-4 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">
             <p className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest text-center mb-0.5 leading-tight">Average<br />Hours</p>
-            <p className="text-3xl font-black text-nature-green-dark"><CountUp value={avgHours} decimals={1} /></p>
+            <p className="text-3xl font-black text-nature-green-dark"><CountUp value={avgHours} decimals={1} startOnView={true} /></p>
           </div>
           <div className="flex-1 bg-white rounded-3xl p-4 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">
             <p className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest text-center mb-0.5 leading-tight">Average<br />Studies</p>
-            <p className="text-3xl font-black text-rose-500"><CountUp value={avgStudies} decimals={1} /></p>
+            <p className="text-3xl font-black text-rose-500"><CountUp value={avgStudies} decimals={1} startOnView={true} /></p>
           </div>
         </section>
 
@@ -314,19 +314,19 @@ const Dashboard = () => {
             <div className="flex-1 bg-white rounded-3xl p-3 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">
               <Sprout className="text-[#52b788] mb-1" size={16} />
               <p className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest text-center mb-0.5 leading-tight">Seedlings</p>
-              <p className="text-2xl font-black text-[#52b788]"><CountUp value={seedlingsCount} /></p>
+              <p className="text-2xl font-black text-[#52b788]"><CountUp value={seedlingsCount} startOnView={true} /></p>
             </div>
             
             <div className="flex-1 bg-white rounded-3xl p-3 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">
               <TreePine className="text-nature-green-dark mb-1" size={16} />
               <p className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest text-center mb-0.5 leading-tight">Trees</p>
-              <p className="text-2xl font-black text-nature-green-dark"><CountUp value={treesCount} /></p>
+              <p className="text-2xl font-black text-nature-green-dark"><CountUp value={treesCount} startOnView={true} /></p>
             </div>
 
             <div className="flex-1 bg-white rounded-3xl p-3 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">
               <Leaf className="text-[#D2B48C] mb-1" size={16} />
               <p className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest text-center mb-0.5 leading-tight">Total</p>
-              <p className="text-2xl font-black text-nature-brown-dark"><CountUp value={totalPlants} /></p>
+              <p className="text-2xl font-black text-nature-brown-dark"><CountUp value={totalPlants} startOnView={true} /></p>
             </div>
           </div>
         </section>

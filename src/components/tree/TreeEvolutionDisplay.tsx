@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Leaf, Star, Trophy } from 'lucide-react';
+import { CountUp } from '../common/CountUp';
 
 interface TreeEvolutionDisplayProps {
     stageIndex: number;
@@ -66,7 +67,7 @@ export const TreeEvolutionDisplay = ({
                     <div className="space-y-1">
                         <p className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-70`}>Total Logged Hours</p>
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-4xl font-black tracking-tighter">{totalHours.toFixed(1)}</h3>
+                            <h3 className="text-4xl font-black tracking-tighter"><CountUp value={totalHours} decimals={1} startOnView={true} /></h3>
                             <span className="text-lg font-bold italic opacity-70">hrs</span>
                         </div>
                     </div>
@@ -83,7 +84,7 @@ export const TreeEvolutionDisplay = ({
                 <div className="space-y-3">
                     <div className="flex justify-between items-end">
                         <div className="flex items-center gap-2"><Leaf size={14} /><span className="text-xs font-black uppercase tracking-wider">Growth Progress</span></div>
-                        <span className="text-sm font-black">{Math.round(progressToNext)}%</span>
+                        <span className="text-sm font-black"><CountUp value={Math.round(progressToNext)} startOnView={true} />%</span>
                     </div>
                     <div className="h-4 bg-nature-cream/50 rounded-full p-1 border border-nature-cream shadow-inner overflow-hidden relative">
                         <motion.div

@@ -2,7 +2,6 @@ import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDay } from 'date-fns';
 import { Plus } from 'lucide-react';
-import { CountUp } from '../common/CountUp';
 
 interface CalendarReportItem {
     date: string;
@@ -115,8 +114,8 @@ export const Calendar = memo(({ currentDate, reports, dailySchedules, plannedSch
 
                                     return (
                                         <div className={`${statusColor} text-white w-10 h-10 rounded-full shadow-sm flex flex-col items-center justify-center border-2 border-white leading-none`}>
-                                            <p className="text-[11px] font-black"><CountUp value={h} />h</p>
-                                            {m > 0 && <p className="text-[8px] font-bold uppercase mt-0.5"><CountUp value={m} />m</p>}
+                                            <p className="text-[11px] font-black">{h}h</p>
+                                            {m > 0 && <p className="text-[8px] font-bold uppercase mt-0.5">{m}m</p>}
                                         </div>
                                     );
                                 })()}

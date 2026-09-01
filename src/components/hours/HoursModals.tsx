@@ -11,8 +11,10 @@ interface LogModalProps {
     setHours: (h: number) => void;
     minutes: number;
     setMinutes: (m: number) => void;
-    credit: number;
-    setCredit: (c: number) => void;
+    creditHours: number;
+    setCreditHours: (ch: number) => void;
+    creditMinutes: number;
+    setCreditMinutes: (cm: number) => void;
     onSave: () => void;
     onDelete: () => void;
     loading: boolean;
@@ -22,7 +24,7 @@ interface LogModalProps {
 
 export const LogModal = ({ 
     isOpen, onClose, selectedDay, hours, setHours, minutes, setMinutes, 
-    credit, setCredit, onSave, onDelete, loading, hasExistingReport, error 
+    creditHours, setCreditHours, creditMinutes, setCreditMinutes, onSave, onDelete, loading, hasExistingReport, error 
 }: LogModalProps) => {
     if (typeof document === 'undefined') return null;
     return createPortal(
@@ -88,15 +90,29 @@ export const LogModal = ({
 
                             <div className="flex items-center gap-4 bg-nature-cream-light/50 p-3 rounded-2xl border border-nature-cream/50">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light flex-1 flex items-center gap-2"><Plus size={12} className="text-nature-green" /> Credit Hours</label>
-                                <div className="w-20">
-                                    <input 
-                                        type="text" inputMode="decimal"
-                                        value={credit === 0 ? '' : credit} 
-                                        onChange={(e) => setCredit(e.target.value === '' ? 0 : Number(e.target.value))} 
-                                        onFocus={(e) => e.target.select()}
-                                        className="w-full bg-white rounded-xl py-2 px-2 text-lg font-black text-center focus:ring-2 ring-nature-green/20 outline-none border border-nature-cream text-nature-green-dark focus:placeholder:text-transparent" 
-                                        placeholder="0" 
-                                    />
+                                <div className="flex gap-2 w-48">
+                                    <div className="flex-1 relative">
+                                        <input 
+                                            type="text" inputMode="decimal"
+                                            value={creditHours === 0 ? '' : creditHours} 
+                                            onChange={(e) => setCreditHours(e.target.value === '' ? 0 : Number(e.target.value))} 
+                                            onFocus={(e) => e.target.select()}
+                                            className="w-full bg-white rounded-xl py-2 px-2 text-lg font-black text-center focus:ring-2 ring-nature-green/20 outline-none border border-nature-cream text-nature-green-dark focus:placeholder:text-transparent" 
+                                            placeholder="0" 
+                                        />
+                                        <span className="absolute -bottom-4 left-0 right-0 text-[7px] uppercase font-black text-nature-brown-light text-center">Hours</span>
+                                    </div>
+                                    <div className="flex-1 relative">
+                                        <input 
+                                            type="text" inputMode="decimal"
+                                            value={creditMinutes === 0 ? '' : creditMinutes} 
+                                            onChange={(e) => setCreditMinutes(e.target.value === '' ? 0 : Number(e.target.value))} 
+                                            onFocus={(e) => e.target.select()}
+                                            className="w-full bg-white rounded-xl py-2 px-2 text-lg font-black text-center focus:ring-2 ring-nature-green/20 outline-none border border-nature-cream text-nature-green-dark focus:placeholder:text-transparent" 
+                                            placeholder="0" 
+                                        />
+                                        <span className="absolute -bottom-4 left-0 right-0 text-[7px] uppercase font-black text-nature-brown-light text-center">Mins</span>
+                                    </div>
                                 </div>
                             </div>
 

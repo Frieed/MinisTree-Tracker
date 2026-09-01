@@ -57,7 +57,8 @@ const Hours = () => {
     const [showEncouragementModal, setShowEncouragementModal] = useState(false);
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(0);
-    const [credit, setCredit] = useState(0);
+    const [creditHours, setCreditHours] = useState(0);
+    const [creditMinutes, setCreditMinutes] = useState(0);
     const [localStudies, setLocalStudies] = useState(0);
     const [error, setError] = useState<string | null>(null);
 
@@ -87,13 +88,18 @@ const Hours = () => {
         if (dayReports.length > 0) {
             const totalH = dayReports.reduce((acc, r) => acc + r.hours, 0);
             const totalC = dayReports.reduce((acc, r) => acc + (r.credit || 0), 0);
+            
             const h = Math.floor(totalH);
             const m = Math.round((totalH - h) * 60);
+            const ch = Math.floor(totalC);
+            const cm = Math.round((totalC - ch) * 60);
+
             setHours(h);
             setMinutes(m);
-            setCredit(totalC);
+            setCreditHours(ch);
+            setCreditMinutes(cm);
         } else {
-            setHours(0); setMinutes(0); setCredit(0);
+            setHours(0); setMinutes(0); setCreditHours(0); setCreditMinutes(0);
         }
         setSelectedDay(day);
         setError(null);
@@ -103,20 +109,21 @@ const Hours = () => {
     const onSaveReport = async () => {
         if (!selectedDay) return;
         const totalInputHours = hours + (minutes / 60);
+        const totalCreditHours = creditHours + (creditMinutes / 60);
         
         // Frontend validation for 24h limit
-        if (totalInputHours > 24) {
+        if (totalInputHours > 24 || totalCreditHours > 24) {
             setError("A day only has 24 hours!");
             return;
         }
 
-        if (totalInputHours <= 0 && credit <= 0) {
+        if (totalInputHours <= 0 && totalCreditHours <= 0) {
             setError("Please enter some time or credit");
             return;
         }
 
         setError(null);
-        const res = await saveReport(selectedDay, totalInputHours, credit);
+        const res = await saveReport(selectedDay, totalInputHours, totalCreditHours);
         if (res && !res.error) {
             setIsModalOpen(false);
         } else if (res?.error) {
@@ -259,7 +266,8 @@ const Hours = () => {
                 isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setError(null); }} selectedDay={selectedDay} 
                 hours={hours} setHours={(h) => { setHours(h); setError(null); }} 
                 minutes={minutes} setMinutes={(m) => { setMinutes(m); setError(null); }} 
-                credit={credit} setCredit={(c) => { setCredit(c); setError(null); }} 
+                creditHours={creditHours} setCreditHours={(ch) => { setCreditHours(ch); setError(null); }} 
+                creditMinutes={creditMinutes} setCreditMinutes={(cm) => { setCreditMinutes(cm); setError(null); }} 
                 onSave={onSaveReport} onDelete={onDeleteReport} 
                 loading={loading} error={error}
                 hasExistingReport={!!reports.find(r => {

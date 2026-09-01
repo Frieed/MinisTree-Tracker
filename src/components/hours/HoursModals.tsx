@@ -132,9 +132,10 @@ interface StudiesModalProps {
     setStudies: (s: number) => void;
     onSave: () => void;
     loading: boolean;
+    breakdown?: { id: string; name: string; lastVisitDate: string }[];
 }
 
-export const StudiesModal = ({ isOpen, onClose, currentDate, studies, setStudies, onSave, loading }: StudiesModalProps) => {
+export const StudiesModal = ({ isOpen, onClose, currentDate, studies, setStudies, onSave, loading, breakdown = [] }: StudiesModalProps) => {
     if (typeof document === 'undefined') return null;
     return createPortal(
         <AnimatePresence>
@@ -181,6 +182,35 @@ export const StudiesModal = ({ isOpen, onClose, currentDate, studies, setStudies
                                         placeholder="0" 
                                     />
                                 </div>
+                            </div>
+
+                            {/* Breakdown of visited trees in this month */}
+                            <div className="space-y-2 pt-1">
+                                <div className="flex justify-between items-center px-1">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light">
+                                        Visited Studies ({breakdown.length})
+                                    </p>
+                                    <span className="text-[8px] font-bold text-nature-brown-light/70 uppercase">In {format(currentDate, 'MMM yyyy')}</span>
+                                </div>
+                                {breakdown.length > 0 ? (
+                                    <div className="bg-nature-cream-light/30 rounded-2xl p-2 border border-nature-cream/40 space-y-1.5 max-h-48 overflow-y-auto">
+                                        {breakdown.map((item) => (
+                                            <div key={item.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-nature-cream/60 shadow-xs">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-base">🌳</span>
+                                                    <span className="text-xs font-bold text-nature-brown-dark">{item.name}</span>
+                                                </div>
+                                                <span className="text-[9px] font-bold text-nature-green-dark bg-nature-green/10 px-2 py-0.5 rounded-md">
+                                                    Last: {format(new Date(item.lastVisitDate), 'MMM d, yyyy')}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-nature-cream-light/20 rounded-2xl p-4 text-center border border-dashed border-nature-cream">
+                                        <p className="text-xs font-bold text-nature-brown-light">No Bible Studies visited yet in {format(currentDate, 'MMMM')}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         

@@ -80,7 +80,42 @@ const Profile = () => {
     }
   };
 
-  const years = [2027, 2026, 2025];
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchAvailableYears = async () => {
+      const today = new Date();
+      const currentSY = today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
+
+      try {
+        const { data } = await supabase
+          .from('reports')
+          .select('date')
+          .eq('user_id', user.id);
+
+        const recordedYears = new Set<number>();
+        (data || []).forEach(r => {
+          if (!r.date) return;
+          const d = new Date(r.date);
+          // Service year starting year: if month >= Sept (8), SY start year is d.getFullYear(), else d.getFullYear() - 1
+          const sy = d.getMonth() >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+          recordedYears.add(sy);
+        });
+
+        // Always include current service year
+        recordedYears.add(currentSY);
+
+        // Sort descending (latest first)
+        const sorted = Array.from(recordedYears).sort((a, b) => b - a);
+        setAvailableYears(sorted);
+      } catch (err) {
+        setAvailableYears([currentSY]);
+      }
+    };
+
+    fetchAvailableYears();
+  }, [user]);
 
   return (
     <div className="p-6 space-y-8 pb-24">
@@ -99,8 +134,6 @@ const Profile = () => {
         <p className="text-nature-brown font-bold text-sm tracking-wide bg-nature-cream-light px-4 py-1 rounded-full mt-2 border border-nature-brown-light/20">Regular Pioneer</p>
       </section>
 
-
-
       <div className="space-y-6">
         <section className="space-y-3">
           <h4 className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light ml-2">App Preferences</h4>
@@ -115,7 +148,7 @@ const Profile = () => {
                 onChange={(e) => setServiceYear(Number(e.target.value))}
                 className="bg-nature-cream-light text-nature-brown-dark font-bold text-sm rounded-xl px-3 py-2 border-2 border-nature-cream outline-none focus:border-nature-green transition-all"
               >
-                {years.map(y => (
+                {availableYears.map(y => (
                   <option key={y} value={y}>{y}-{y+1}</option>
                 ))}
               </select>
@@ -215,28 +248,131 @@ const Profile = () => {
                 {expandedSection === 'faq' && (
                   <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden bg-nature-cream-light">
                     <div className="p-5 space-y-4">
-                      <div className="space-y-2">
-                        <h5 className="font-bold text-sm text-nature-brown-dark">How are monthly goals calculated?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed">Monthly goals are calculated based on your weekly hourly schedule. Since some months have 4 weeks and others 5, the monthly goal adjusts automatically.</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-bold text-sm text-nature-brown-dark">Goal Hours vs. Sched Hours?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed">
-                          <span className="font-bold text-nature-green-dark">Goal Hours</span> is your official target for the month (e.g. 50 hrs). 
-                          <span className="font-bold text-nature-brown-dark"> Sched Hours</span> is the total time you've actually planned in your personal schedule for the month.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-bold text-sm text-nature-brown-dark">What are "Credit Hours"?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed">Credit hours are for extra activities (like LDC or construction) that count towards your yearly total but aren't logged as field service time.</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-bold text-sm text-nature-brown-dark">How does the Companion Tree grow?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed">Your tree flourishes as you reach milestones in your service year. There are 13 growth stages—keep logging to see it evolve!</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-bold text-sm text-nature-brown-dark">Can I work offline?</h5>
-                        <p className="text-xs text-nature-brown leading-relaxed"><span className="font-bold text-nature-green-dark">Yes!</span> MinisTree now fully supports offline mode. You can log hours and manage your garden anywhere—your data will sync automatically when you're back online.</p>
+                      <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 custom-scrollbar">
+
+                        {/* Category: Dashboard */}
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-nature-green-dark flex items-center gap-1.5">
+                            📊 1. Home Dashboard
+                          </p>
+                          <div className="space-y-1.5">
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">How do Service Years work?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Service years run from <strong>September 1 to August 31</strong>. You can switch between active and previous service years in Settings or the header to view historical reports and growth charts.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">What is Dynamic Goal vs. Progress?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Your monthly goal dynamically recalculates remaining hours across remaining months of the service year. Progress shows total yearly hours logged toward the 600-hour quota.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">Garden Summary in Dashboard?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Shows active Seedlings (🌱) and Trees (🌳). On Trees card, green numbers show active trees while orange numbers show drying trees.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Category: Ministry Logs (Hours) */}
+                        <div className="space-y-2 pt-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-nature-green-dark flex items-center gap-1.5">
+                            ⏱️ 2. Ministry Logs (Hours)
+                          </p>
+                          <div className="space-y-1.5">
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">How to log daily hours & credit?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Tap any calendar day to log hours, minutes, or credit hours (LDC/construction). Green dots show completed service days and purple badges show logged credit.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">How does Bible Studies auto-fill work?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                MinisTree automatically counts unique Bible Studies (trees) visited/watered during that month. Tap the Bible Studies card to see the breakdown list and adjust the final count before saving.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">What happens when I click "Mark as Reported"?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Marking a month as reported locks in your final monthly report and recalculates your remaining dynamic goals for future months.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Category: Schedule (Carving) */}
+                        <div className="space-y-2 pt-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-nature-green-dark flex items-center gap-1.5">
+                            📅 3. Schedule (Carving)
+                          </p>
+                          <div className="space-y-1.5">
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">Weekly Schedule vs Daily Overrides?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Set default planned hours for each day of the week (Sunday–Saturday). You can also set specific hour overrides for individual calendar days.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">What are Projected Schedule Hours?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Shows total planned hours for the current month based on your schedule calendar, helping you compare planned time against actual target goals.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Category: Garden (Map) */}
+                        <div className="space-y-2 pt-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-nature-green-dark flex items-center gap-1.5">
+                            🌱 4. Garden (Visits & Studies)
+                          </p>
+                          <div className="space-y-1.5">
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">Seedlings (🌱) vs. Trees (🌳)?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Seedlings (🌱) are Return Visits. Trees (🌳) are Bible Studies. You can convert a Return Visit into a Bible Study anytime inside visit details.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">Watering & Drying Out Rules?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Watering records a visit log. If a plant isn't watered for <strong>4 weeks (28 days)</strong>, it turns into a <strong>Drying Out</strong> state until watered again.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">How does Visit Handover (🤝) work?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Open any visit/study in your <strong>Garden</strong>, tap <strong>Handover Visit (🤝)</strong>, and enter the publisher's email. They will receive a notification request. If accepted, the visit and its history are securely transferred into their Garden.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Category: Companion Tree */}
+                        <div className="space-y-2 pt-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-nature-green-dark flex items-center gap-1.5">
+                            🌲 5. Companion Tree
+                          </p>
+                          <div className="space-y-1.5">
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">How does the Companion Tree evolve?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                Your virtual tree evolves through <strong>13 distinct growth stages</strong> based on your cumulative service hours throughout the service year.
+                              </p>
+                            </div>
+                            <div className="bg-white p-3.5 rounded-2xl border border-nature-cream">
+                              <h5 className="font-black text-xs text-nature-brown-dark">Stage Level-Up Notifications?</h5>
+                              <p className="text-xs text-nature-brown leading-relaxed mt-1">
+                                As soon as your logged hours reach a new stage threshold, you'll receive a celebration prompt and notification!
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
                       </div>
                     </div>
                   </motion.div>

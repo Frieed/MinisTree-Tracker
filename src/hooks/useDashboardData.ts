@@ -48,7 +48,9 @@ export const useDashboardData = () => {
           supabase
             .from('monthly_submissions')
             .select('*')
-            .eq('user_id', user.id),
+            .eq('user_id', user.id)
+            .gte('month', format(serviceYearStartDate, 'yyyy-MM-dd'))
+            .lte('month', format(serviceYearEndDate, 'yyyy-MM-dd')),
           supabase
             .from('monthly_schedules')
             .select('*')
@@ -94,15 +96,33 @@ export const useDashboardData = () => {
     const dailySchedulesMap = new Map(dailySchedules.map(s => [s.date, s]));
     const monthlySchedulesMap = new Map(monthlySchedules.map(s => [s.month, s]));
     
-    // Aggregations
-    const reportsByMonth = reports.reduce((acc: any, report) => {
-      const month = format(parseISO(report.date), 'MMMM');
-      if (!acc[month]) acc[month] = { hours: 0, credit: 0 };
-      acc[month].hours += report.hours;
-      acc[month].credit += (report.credit || 0);
+    // Aggregations — key by 'YYYY-MM' to avoid cross-year bleed
+    // (e.g. August 2025 must not show up in August 2026-2027 slot)
+    const reportsByMonthKey = reports.reduce((acc: any, report) => {
+      const key = format(parseISO(report.date), 'yyyy-MM');
+      if (!acc[key]) acc[key] = { hours: 0, credit: 0 };
+      acc[key].hours += report.hours;
+      acc[key].credit += (report.credit || 0);
       return acc;
     }, {});
 
+    // Build a helper that maps SERVICE_YEAR_MONTHS index → 'yyyy-MM' key
+    // so the rest of the hook can look up by month name via index
+    const SERVICE_YEAR_MONTH_KEYS: Record<string, string> = {};
+    SERVICE_YEAR_MONTHS.forEach((m, idx) => {
+      const slotDate = addMonths(serviceYearStartDate, idx);
+      const yr = slotDate.getFullYear() > 2100 ? slotDate.getFullYear() - 543 : slotDate.getFullYear();
+      SERVICE_YEAR_MONTH_KEYS[m] = `${yr}-${String(slotDate.getMonth() + 1).padStart(2, '0')}`;
+    });
+
+    // Re-expose as reportsByMonth keyed by month name (within the active SY only)
+    const reportsByMonth: Record<string, any> = {};
+    SERVICE_YEAR_MONTHS.forEach(m => {
+      const key = SERVICE_YEAR_MONTH_KEYS[m];
+      if (reportsByMonthKey[key]) reportsByMonth[m] = { ...reportsByMonthKey[key] };
+    });
+
+    // Submissions are already filtered to the current SY by the query
     submissions.forEach(sub => {
       const month = format(parseISO(sub.month), 'MMMM');
       if (!reportsByMonth[month]) {
@@ -120,6 +140,7 @@ export const useDashboardData = () => {
     const reportedMonthsSet = new Set(reportedMonthsNames);
     
     let currentMonthName = '';
+    let isYearComplete = false;
     if (isCurrentServiceYear) {
         let activeMonthIdx = SERVICE_YEAR_MONTHS.indexOf(actualMonthName!);
         while (activeMonthIdx < 11 && reportedMonthsSet.has(SERVICE_YEAR_MONTHS[activeMonthIdx])) {
@@ -127,7 +148,9 @@ export const useDashboardData = () => {
         }
         currentMonthName = SERVICE_YEAR_MONTHS[activeMonthIdx];
     } else if (today > serviceYearEndDate) {
-        currentMonthName = 'DONE'; 
+        // Completed service year — use last month so indexOf always finds a valid index
+        currentMonthName = SERVICE_YEAR_MONTHS[11]; // 'August'
+        isYearComplete = true;
     } else {
         currentMonthName = 'September';
     }
@@ -156,8 +179,9 @@ export const useDashboardData = () => {
     // Pre-calculate monthly summary details
     const monthlySummary = SERVICE_YEAR_MONTHS.map((m, idx) => {
       const data = reportsByMonth[m];
-      const isNow = m === currentMonthName;
-      const isFuture = (SERVICE_YEAR_MONTHS.indexOf(m) > SERVICE_YEAR_MONTHS.indexOf(currentMonthName));
+      // Don't mark any month as 'current' on a completed service year
+      const isNow = !isYearComplete && m === currentMonthName;
+      const isFuture = SERVICE_YEAR_MONTHS.indexOf(m) > SERVICE_YEAR_MONTHS.indexOf(currentMonthName);
       const isReported = reportedMonthsSet.has(m);
 
       let accumulatedHours = 0;
@@ -205,6 +229,7 @@ export const useDashboardData = () => {
       reportsByMonth,
       totalYearlyHours,
       currentMonthName,
+      isYearComplete,
       currentMonthHoursLogged,
       dynamicMonthlyGoal,
       progressPercentage,

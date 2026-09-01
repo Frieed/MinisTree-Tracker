@@ -74,7 +74,7 @@ export const Calendar = memo(({ currentDate, reports, dailySchedules, plannedSch
                         </span>
 
                         {report && report.hours > 0 && report.credit > 0 && (
-                            <span className="text-[10px] font-bold text-rose-500 absolute top-2 right-2 uppercase tracking-tighter shadow-sm bg-white/50 backdrop-blur-[2px] px-1 rounded-md">
+                            <span className="text-[10px] font-bold text-purple-500 absolute top-2 right-2 uppercase tracking-tighter shadow-sm bg-white/50 backdrop-blur-[2px] px-1 rounded-md">
                                 {report.credit}c
                             </span>
                         )}
@@ -121,7 +121,7 @@ export const Calendar = memo(({ currentDate, reports, dailySchedules, plannedSch
                                 })()}
                             </motion.div>
                         ) : report && report.credit > 0 ? (
-                            <div className="mt-5 bg-rose-500 text-white w-9 h-9 rounded-full shadow-sm flex items-center justify-center border-2 border-white translate-y-1">
+                            <div className="mt-5 bg-purple-500 text-white w-9 h-9 rounded-full shadow-sm flex items-center justify-center border-2 border-white translate-y-1">
                                 <span className="text-sm font-black">{report.credit}c</span>
                             </div>
                         ) : !report && isCurrentMonth ? (

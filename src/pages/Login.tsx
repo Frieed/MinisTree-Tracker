@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Mail, Lock, Loader2, ArrowRight, UserPlus, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff, KeyRound, RotateCcw } from 'lucide-react';
 
-const Login = () => {
+const Login = ({ isResetMode = false, onResetComplete }: { isResetMode?: boolean; onResetComplete?: () => void }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,11 +14,86 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  // New Password Reset screen state
+  const [newPassword, setNewPassword] = useState('');
+  const [newConfirmPassword, setNewConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showNewConfirmPassword, setShowNewConfirmPassword] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== newConfirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+      setResetSuccess(true);
+      setMessage('Password updated successfully! You can now log in with your new password.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to update password.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // OTP state
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '', '', '']);
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Forgot Password state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    setForgotError(null);
+    setForgotMessage(null);
+
+    // Client-side rate limit check (60-second window)
+    const rateKey = `minisTree_forgot_rate_${forgotEmail.toLowerCase().trim()}`;
+    const lastSent = localStorage.getItem(rateKey);
+    if (lastSent && Date.now() - Number(lastSent) < 60 * 1000) {
+      const waitSec = Math.ceil((60 * 1000 - (Date.now() - Number(lastSent))) / 1000);
+      setForgotError(`For security, please wait ${waitSec} second${waitSec > 1 ? 's' : ''} before requesting another reset email.`);
+      setForgotLoading(false);
+      return;
+    }
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(forgotEmail.toLowerCase().trim(), {
+        redirectTo: `${window.location.origin}/#reset-password`,
+      });
+      if (resetError) {
+        if (resetError.message.toLowerCase().includes('rate limit')) {
+          throw new Error('You have requested password reset links recently. Please check your email inbox or wait a few minutes before trying again.');
+        }
+        throw resetError;
+      }
+      localStorage.setItem(rateKey, Date.now().toString());
+      setForgotMessage('Password reset link sent! Please check your email inbox.');
+    } catch (err: any) {
+      setForgotError(err.message || 'Failed to send reset link.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   // Strength calculation
   const strength = useMemo(() => {
@@ -171,6 +246,104 @@ const Login = () => {
       startResendCooldown();
     }
   };
+
+  // ── Password Reset Screen ───────────────────────────────────────────────────
+  if (isResetMode) {
+    return (
+      <div className="min-h-screen bg-nature-cream flex flex-col items-center justify-center p-6 select-none">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-20 h-20 bg-nature-green rounded-[2.5rem] flex items-center justify-center shadow-premium mb-4">
+              <KeyRound className="text-white w-10 h-10" />
+            </div>
+            <h1 className="text-3xl font-black text-nature-brown-dark tracking-tighter">Set New Password</h1>
+            <p className="text-nature-brown font-bold text-xs uppercase tracking-widest mt-2">Enter your new password below</p>
+          </div>
+
+          <div className="card shadow-2xl backdrop-blur-sm bg-white/90">
+            {resetSuccess ? (
+              <div className="text-center space-y-4 py-4">
+                <div className="w-16 h-16 bg-nature-green/10 text-nature-green rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 size={36} />
+                </div>
+                <h3 className="text-xl font-black text-nature-brown-dark">Password Updated!</h3>
+                <p className="text-xs text-nature-brown font-medium">Your password has been changed successfully.</p>
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    if (onResetComplete) onResetComplete();
+                  }}
+                  className="w-full btn-primary h-12 text-sm font-bold shadow-lg"
+                >
+                  Back to Login
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSetNewPassword} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light ml-2">New Password</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-nature-brown-light group-focus-within:text-nature-green transition-colors" size={18} />
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="input-field pl-12 pr-12"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-nature-brown-light hover:text-nature-green transition-colors"
+                    >
+                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light ml-2">Confirm New Password</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-nature-brown-light group-focus-within:text-nature-green transition-colors" size={18} />
+                    <input
+                      type={showNewConfirmPassword ? "text" : "password"}
+                      required
+                      value={newConfirmPassword}
+                      onChange={(e) => setNewConfirmPassword(e.target.value)}
+                      className="input-field pl-12 pr-12"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewConfirmPassword(!showNewConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-nature-brown-light hover:text-nature-green transition-colors"
+                    >
+                      {showNewConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-500 text-xs font-bold leading-tight">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !newPassword || !newConfirmPassword}
+                  className="w-full btn-primary h-14 text-base font-bold shadow-xl overflow-hidden relative active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="animate-spin" /> : 'Update Password'}
+                </button>
+              </form>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   // ── OTP Verification Screen ──────────────────────────────────────────────
   if (showOtpScreen) {
@@ -334,7 +507,23 @@ const Login = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light ml-2">Password</label>
+                <div className="flex justify-between items-center ml-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-nature-brown-light">Password</label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotEmail(email);
+                        setForgotMessage(null);
+                        setForgotError(null);
+                        setShowForgotModal(true);
+                      }}
+                      className="text-[10px] font-bold text-nature-green hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-nature-brown-light group-focus-within:text-nature-green transition-colors" size={18} />
                   <input
@@ -479,6 +668,74 @@ const Login = () => {
           Secure tracking for your sacred service
         </p>
       </motion.div>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <div className="fixed inset-0 z-[3000] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowForgotModal(false)}
+              className="absolute inset-0 bg-nature-brown-dark/30 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-nature-cream space-y-4"
+            >
+              <div className="text-center space-y-1">
+                <h3 className="text-xl font-black text-nature-brown-dark">Reset Password</h3>
+                <p className="text-xs text-nature-brown font-medium">Enter your email and we'll send you a password reset link.</p>
+              </div>
+
+              <form onSubmit={handleForgotPassword} className="space-y-4 pt-2">
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-nature-brown-light group-focus-within:text-nature-green transition-colors" size={18} />
+                  <input
+                    type="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="input-field pl-12"
+                    placeholder="your@email.com"
+                  />
+                </div>
+
+                {forgotMessage && (
+                  <div className="p-3 bg-nature-green/10 border border-nature-green/20 rounded-xl text-nature-green-dark text-xs font-bold leading-tight">
+                    {forgotMessage}
+                  </div>
+                )}
+                {forgotError && (
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-500 text-xs font-bold leading-tight">
+                    {forgotError}
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="flex-1 py-3 bg-nature-cream text-nature-brown font-bold text-xs rounded-xl hover:bg-nature-cream/70 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading || !forgotEmail}
+                    className="flex-1 py-3 bg-nature-green text-white font-bold text-xs rounded-xl shadow-md hover:bg-nature-green-dark disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    {forgotLoading ? <Loader2 className="animate-spin" size={16} /> : 'Send Link'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

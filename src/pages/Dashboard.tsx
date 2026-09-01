@@ -14,6 +14,7 @@ const Dashboard = () => {
     reportsByMonth,
     totalYearlyHours,
     currentMonthName,
+    isYearComplete,
     currentMonthHoursLogged,
     dynamicMonthlyGoal,
     progressPercentage,
@@ -29,9 +30,22 @@ const Dashboard = () => {
   } = useDashboardData();
 
   const { visits } = useVisits();
-  const treesCount = visits.filter(v => v.is_bible_study).length;
-  const seedlingsCount = visits.filter(v => !v.is_bible_study).length;
-  const totalPlants = visits.length;
+
+  // A plant is considered "drying" (unhealthy) if not visited in 4+ weeks — same threshold as the Map/notifications.
+  const DRYING_MS = 28 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  const isPlantActive = (v: any) => {
+    const lastDate = v.last_visit_date || v.created_at;
+    if (!lastDate) return true;
+    return now - new Date(lastDate).getTime() < DRYING_MS;
+  };
+
+  const activeTreesCount = visits.filter(v => v.is_bible_study && isPlantActive(v)).length;
+  const dryingTreesCount = visits.filter(v => v.is_bible_study && !isPlantActive(v)).length;
+
+  const seedlingsCount = visits.filter(v => !v.is_bible_study && isPlantActive(v)).length;
+  const totalPlants = visits.filter(v => isPlantActive(v)).length;
 
   const today = new Date();
 
@@ -57,7 +71,9 @@ const Dashboard = () => {
           Keep <span className="text-nature-green">Growing</span>, <br />
           Friend.
         </motion.h2>
-        <p className="text-nature-brown font-medium mt-1">{currentMonthName} {today.getFullYear()} Service Report</p>
+        <p className="text-nature-brown font-medium mt-1">
+          {isYearComplete ? 'Year Complete' : currentMonthName} {today.getFullYear()} Service Report
+        </p>
       </section>
 
       <section className="relative overflow-hidden rounded-[2rem] bg-[#0a2a0a] p-5 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-white/5 max-w-full">
@@ -84,7 +100,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-1.5 mb-1">
                 <Leaf className="text-[#d9ed92] w-2.5 h-2.5" />
-                <p className="text-[#d9ed92]/80 text-[8px] font-black uppercase tracking-widest">Goal for {currentMonthName}</p>
+                <p className="text-[#d9ed92]/80 text-[8px] font-black uppercase tracking-widest">Goal for {isYearComplete ? 'the Year' : currentMonthName}</p>
               </div>
               <div className="flex items-baseline gap-2 whitespace-nowrap">
                 <h3 className="text-4xl font-black tracking-tighter text-white leading-none">
@@ -320,7 +336,15 @@ const Dashboard = () => {
             <div className="flex-1 bg-white rounded-3xl p-3 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">
               <TreePine className="text-nature-green-dark mb-1" size={16} />
               <p className="text-[8px] uppercase font-black text-nature-brown-light tracking-widest text-center mb-0.5 leading-tight">Trees</p>
-              <p className="text-2xl font-black text-nature-green-dark"><CountUp value={treesCount} startOnView={true} /></p>
+              <div className="flex items-center gap-1.5 font-black text-2xl">
+                <span className="text-nature-green-dark" title="Active Trees"><CountUp value={activeTreesCount} startOnView={true} /></span>
+                {dryingTreesCount > 0 && (
+                  <>
+                    <span className="text-xs text-nature-brown-light font-bold">/</span>
+                    <span className="text-orange-500" title="Drying Trees"><CountUp value={dryingTreesCount} startOnView={true} /></span>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="flex-1 bg-white rounded-3xl p-3 shadow-premium border border-nature-cream flex flex-col items-center justify-center transition-transform hover:scale-[1.02]">

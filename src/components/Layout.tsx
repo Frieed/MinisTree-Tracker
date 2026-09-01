@@ -8,6 +8,7 @@ import { SystemNotificationsManager } from './common/SystemNotificationsManager'
 import { LevelUpModal } from './tree/LevelUpModal';
 import { useTreeGrowth } from '../hooks/useTreeGrowth';
 import { useNotifications } from '../context/NotificationsContext';
+import { useServiceYear } from '../context/ServiceYearContext';
 
 const Layout = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -20,6 +21,8 @@ const Layout = () => {
   const { 
     showLevelUp, dismissLevelUp, stageIndex, currentStage 
   } = useTreeGrowth();
+
+  const { serviceYear: _serviceYear, displayName } = useServiceYear();
 
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingTo, setPendingTo] = useState<string | null>(null);
@@ -45,37 +48,41 @@ const Layout = () => {
     <div className="h-[100dvh] max-h-[100dvh] bg-nature-cream flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden">
       <SystemNotificationsManager />
       {/* Header / Brand */}
-      <header className={`absolute top-0 w-full z-[50] p-6 pb-2 bg-nature-cream/95 backdrop-blur-xl flex items-center justify-between transition-transform duration-500 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      <header className={`absolute top-0 w-full z-[50] px-4 py-3 bg-nature-cream/95 backdrop-blur-xl flex items-center justify-between transition-transform duration-500 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-nature-green rounded-xl flex items-center justify-center shadow-soft">
-            <Leaf className="text-white w-6 h-6" />
+          <div className="w-9 h-9 bg-nature-green rounded-xl flex items-center justify-center shadow-soft shrink-0">
+            <Leaf className="text-white w-5 h-5" />
           </div>
-          <h1 className="text-xl font-bold text-nature-brown-dark tracking-tight">MinisTree</h1>
+          <h1 className="text-lg font-bold text-nature-brown-dark tracking-tight">
+            MinisTree
+            <span className="text-sm font-bold text-nature-brown-dark tracking-tight ml-1.5 opacity-60">{displayName}</span>
+          </h1>
         </div>
+
         <div className="flex items-center gap-2">
-          <Link to="/notifications" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-nature-brown hover:text-nature-green transition-colors relative">
-            <Bell size={20} />
+          <Link to="/notifications" className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-soft text-nature-brown hover:text-nature-green transition-colors relative">
+            <Bell size={18} />
             {hasUnread && (
-              <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+              <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
             )}
           </Link>
-          <Link to="/settings" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft text-nature-brown hover:text-nature-green transition-colors">
-            <Settings size={20} />
+          <Link to="/settings" className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-soft text-nature-brown hover:text-nature-green transition-colors">
+            <Settings size={18} />
           </Link>
         </div>
       </header>
 
       {/* Main Content */}
       <main onScroll={handleScroll} className={`flex-1 ${isModalOpen ? 'overflow-hidden' : 'overflow-y-auto'} pt-[4.5rem] pb-10 scrollbar-hide`}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -6 }}
             transition={{
-              duration: 0.3,
-              ease: [0.22, 1, 0.36, 1]
+              duration: 0.15,
+              ease: "easeOut"
             }}
             style={{ willChange: 'transform, opacity' }}
           >

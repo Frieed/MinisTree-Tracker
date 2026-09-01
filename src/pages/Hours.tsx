@@ -15,15 +15,33 @@ const Hours = () => {
     const { startDate: serviceYearStartDate, endDate: serviceYearEndDate } = useServiceYear();
     const { setIsModalOpen: setGlobalModalOpen } = useUI();
     
+    // Clamp the initial date within the selected service year's bounds.
+    // This ensures switching to a past/future SY doesn't open on today's date if it's out of range.
+    const clampToServiceYear = (date: Date) => {
+        if (date < serviceYearStartDate) return serviceYearStartDate;
+        if (date > serviceYearEndDate) return serviceYearEndDate;
+        return date;
+    };
+
     // Check for initial date from navigation state
-    const initialDate = location.state?.date ? new Date(location.state.date) : new Date();
+    const rawInitialDate = location.state?.date ? new Date(location.state.date) : new Date();
+    const initialDate = clampToServiceYear(rawInitialDate);
     
     const {
         currentDate, setCurrentDate,
-        reports, isReported, monthlyStudies, dynamicGoal,
+        reports, isReported, monthlyStudies, visitedStudiesBreakdown, dynamicGoal,
         plannedSchedule, dailySchedules, scheduleToDate, monthScheduleTotal, nextMonthGoal, loading, statusLoading,
         saveReport, deleteReport, toggleReported, saveStudies
     } = useHoursData(initialDate);
+
+    // When the selected service year changes, reset the calendar to within the new SY bounds
+    useEffect(() => {
+        setCurrentDate(prev => {
+            if (prev < serviceYearStartDate) return serviceYearStartDate;
+            if (prev > serviceYearEndDate) return serviceYearEndDate;
+            return prev;
+        });
+    }, [serviceYearStartDate, serviceYearEndDate, setCurrentDate]);
 
     // Update currentDate if location state changes
     useEffect(() => {
@@ -253,7 +271,7 @@ const Hours = () => {
             <StudiesModal 
                 isOpen={isStudiesModalOpen} onClose={() => setIsStudiesModalOpen(false)} currentDate={currentDate} 
                 studies={localStudies} setStudies={setLocalStudies} onSave={() => saveStudies(localStudies).then(() => setIsStudiesModalOpen(false))} 
-                loading={statusLoading} 
+                loading={statusLoading} breakdown={visitedStudiesBreakdown}
             />
 
             <ReportEncouragementModal

@@ -20,6 +20,8 @@ export const useHoursData = (initialDate: Date) => {
     const [loading, setLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
 
+    const [visitedStudiesBreakdown, setVisitedStudiesBreakdown] = useState<{ id: string; name: string; lastVisitDate: string }[]>([]);
+
     const fetchAllData = useCallback(async () => {
         if (!user) return;
         const monthStart = startOfMonth(currentDate);
@@ -38,6 +40,7 @@ export const useHoursData = (initialDate: Date) => {
             plannedSchedule: Record<string | number, number>;
             dailySchedules: any[];
             dynamicGoal: number;
+            visitedStudiesBreakdown?: { id: string; name: string; lastVisitDate: string }[];
         }>(cacheKey);
         if (cached) {
             setReports(cached.reports || []);
@@ -46,21 +49,43 @@ export const useHoursData = (initialDate: Date) => {
             setPlannedSchedule(cached.plannedSchedule || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 });
             setDailySchedules(cached.dailySchedules || []);
             setDynamicGoal(cached.dynamicGoal || 50);
+            if (cached.visitedStudiesBreakdown) setVisitedStudiesBreakdown(cached.visitedStudiesBreakdown);
         }
 
         try {
             const sYear = monthStart.getFullYear() > 2100 ? monthStart.getFullYear() - 543 : monthStart.getFullYear();
-            const eYear = monthEnd.getFullYear() > 2100 ? monthEnd.getFullYear() - 543 : monthEnd.getFullYear();
-            const [reportsRes, statusRes, scheduleRes, dailyRes] = await Promise.all([
-                supabase.from('reports').select('*').eq('user_id', user.id).gte('date', `${sYear}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${eYear}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`),
+            const startDateStr = `${sYear}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`;
+            const endDateStr = `${sYear}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`;
+
+            const [reportsRes, statusRes, scheduleRes, dailyRes, visitedStudiesRes] = await Promise.all([
+                supabase.from('reports').select('*').eq('user_id', user.id).gte('date', startDateStr).lte('date', endDateStr),
                 supabase.from('monthly_submissions').select('is_reported, bible_studies').eq('user_id', user.id).eq('month', monthStr).maybeSingle(),
                 supabase.from('monthly_schedules').select('schedule').eq('user_id', user.id).eq('month', monthStr).maybeSingle(),
-                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', `${sYear}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01`).lte('date', `${eYear}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`)
+                supabase.from('daily_schedules').select('*').eq('user_id', user.id).gte('date', startDateStr).lte('date', endDateStr),
+                supabase.from('visit_logs').select('visit_id, visit_date, return_visits!inner(name, is_bible_study, user_id)').eq('return_visits.user_id', user.id).eq('return_visits.is_bible_study', true).gte('visit_date', startDateStr).lte('visit_date', endDateStr).eq('is_attempt', false).order('visit_date', { ascending: false })
             ]);
 
             const newReports = reportsRes.data || [];
             const newIsReported = statusRes.data?.is_reported || false;
-            const newMonthlyStudies = statusRes.data?.bible_studies || 0;
+            
+            // Build unique breakdown list of visited trees for this month
+            const breakdownMap = new Map<string, { id: string; name: string; lastVisitDate: string }>();
+            (visitedStudiesRes.data || []).forEach((l: any) => {
+                if (!breakdownMap.has(l.visit_id)) {
+                    breakdownMap.set(l.visit_id, {
+                        id: l.visit_id,
+                        name: l.return_visits?.name || 'Bible Study',
+                        lastVisitDate: l.visit_date
+                    });
+                }
+            });
+            const newBreakdown = Array.from(breakdownMap.values());
+            
+            // Use saved value if present in DB submission, otherwise auto-suggest calculated count
+            const newMonthlyStudies = statusRes.data?.bible_studies !== undefined && statusRes.data?.bible_studies !== null
+                ? statusRes.data.bible_studies
+                : newBreakdown.length;
+
             const newPlannedSchedule = scheduleRes.data?.schedule || {};
             const newDailySchedules = dailyRes.data || [];
 
@@ -69,6 +94,7 @@ export const useHoursData = (initialDate: Date) => {
             setMonthlyStudies(newMonthlyStudies);
             setPlannedSchedule(newPlannedSchedule);
             setDailySchedules(newDailySchedules);
+            setVisitedStudiesBreakdown(newBreakdown);
 
             // Fetch Dynamic Goal
             const syMonths = ['September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August'];
@@ -285,6 +311,7 @@ export const useHoursData = (initialDate: Date) => {
         reports,
         isReported,
         monthlyStudies,
+        visitedStudiesBreakdown,
         dynamicGoal,
         plannedSchedule,
         dailySchedules,

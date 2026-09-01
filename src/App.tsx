@@ -20,7 +20,7 @@ const LoadingSpinner = () => (
 );
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, isPasswordRecovery, clearPasswordRecovery } = useAuth();
   const location = useLocation();
 
   return (
@@ -34,6 +34,15 @@ function App() {
           className="min-h-screen bg-nature-cream flex items-center justify-center"
         >
           <div className="w-12 h-12 border-4 border-nature-green/20 border-t-nature-green rounded-full animate-spin" />
+        </motion.div>
+      ) : isPasswordRecovery ? (
+        <motion.div
+          key="reset-password"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <Login isResetMode={true} onResetComplete={clearPasswordRecovery} />
         </motion.div>
       ) : !user ? (
         <motion.div

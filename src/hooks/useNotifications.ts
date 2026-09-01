@@ -138,13 +138,18 @@ export const useNotificationsData = () => {
         });
 
         for (const v of dryingVisits) {
-            const alreadyNotified = notifications.some(n => n.type === 'warning' && n.message.includes(v.name) && n.message.includes('1 week left'));
-            if (!alreadyNotified) {
+            // Use a localStorage key per plant so we don't spam even after the 24h DB cleanup
+            const dryingKey = `minisTree_dryingNotif_${user.id}_${v.id}`;
+            const lastDryingNotif = localStorage.getItem(dryingKey);
+            // Only fire once per 7-day window (the plant has ~1 week left, one warning is enough)
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
+            if (!lastDryingNotif || nowTime - Number(lastDryingNotif) > sevenDays) {
                 await createNotification(
                     'Plant Drying Out!',
                     `Warning: ${v.name} has only 1 week left before they are permanently removed from your garden. Give them some water soon!`,
                     'warning'
                 );
+                localStorage.setItem(dryingKey, nowTime.toString());
             }
         }
 
@@ -213,6 +218,25 @@ export const useNotificationsData = () => {
                     localStorage.setItem(reportCheckKey, nowTime.toString());
                 }
             }
+        }
+
+        // 4. New Service Year Welcome Notification & Motivational Message
+        const currentSYStartYear = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+        const syNotifKey = `minisTree_syNotified_${user.id}_${currentSYStartYear}`;
+        const alreadyNotifiedSY = localStorage.getItem(syNotifKey);
+
+        if (!alreadyNotifiedSY) {
+            const nextSYYear = currentSYStartYear + 1;
+            const inNotifDB = notifications.some(n => n.type === 'success' && n.title.includes(`Service Year ${currentSYStartYear}–${nextSYYear}`));
+            
+            if (!inNotifDB) {
+                await createNotification(
+                    `Welcome to Service Year ${currentSYStartYear}–${nextSYYear}! 🌿✨`,
+                    `A brand new service year has arrived! "Trust in Jehovah and do good; reside in the earth, and act with faithfulness." — Psalm 37:3. May Jehovah abundantly bless your zealous efforts and personal goals this year!`,
+                    'success'
+                );
+            }
+            localStorage.setItem(syNotifKey, 'true');
         }
     }, [user, loading, notifications, createNotification]);
 
